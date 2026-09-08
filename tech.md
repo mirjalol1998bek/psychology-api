@@ -549,16 +549,27 @@ Domen shakllari bo'yicha manba: `psychology-front/src/types/domain.ts`,
 
 ---
 
-## 15. Keyingi qadamlar
+## 15. Holat va keyingi qadamlar
 
-1. `docker compose up` + `composer install` + `ask:install` + JWT kalitlari —
-   ishlayotganini tekshirish.
-2. PHPStan + PHP-CS-Fixer + PHPUnit qo'shish, `Makefile`.
-3. `src/Enum/` — barcha enum'lar.
-4. `docs/` — `user.md`, `faculty.md`, `study-group.md` (avval hujjat).
-5. `User` kengaytmasi + `Faculty` + `StudyGroup` + migratsiya.
-6. HEMIS auth (`docs/hemis-auth.md` → `src/Security/` + `src/Component/User/`).
-7. Assessment domeni: `Category` → `Quiz` → `Question` → `AnswerOption` →
-   `Assignment` → `Attempt` → ballash → `AssessmentResult`.
-8. `Appeal`, `Notification`, `StudentPassport`, `AppointmentSlot`.
-9. `psychology-front` service qatlamini API'ga ulash.
+**Bajarilgan (2026-09-08):**
+
+- [x] Docker stack, `ask:install`, JWT kalitlari
+- [x] `src/Enum/` — barcha enum'lar
+- [x] `User` kengaytmasi + `Faculty` + `StudyGroup` + migratsiya
+- [x] Assessment domeni: `Category` → `Quiz` → `Question` → `AnswerOption` →
+  `Assignment` → `Attempt` → ballash (Strategy) → `AssessmentResult`
+- [x] `Appeal` (anonim/ismli) + javob, `Notification`, `StudentPassport`,
+  `AppointmentSlot`
+- [x] `role_hierarchy`, State Provider/Processor'lar (talaba izolyatsiyasi)
+- [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, Zung
+- [x] `docs/` — barcha entity + jarayon hujjatlari
+
+**Qolgan:**
+
+- [ ] PHPStan + PHP-CS-Fixer + PHPUnit + CI, `Makefile` to'ldirish
+- [ ] HEMIS OAuth2 (`docs/auth.md` → `src/Security/` + `UserFactory::createFromHemis`)
+- [ ] Guruh kesimida eksport: `GET /api/admin/group_results?group=&instrument=`,
+  `GET /api/admin/group_passports?group=` (DTO + State Provider)
+- [ ] "Talaba sifatida ko'rish" — impersonatsiya token'i
+- [ ] Ibodullayev shkalasi (rasmiy savol matni bilan, seed yoki admin API)
+- [ ] `psychology-front` `src/services/*` qatlamini API'ga ulash
