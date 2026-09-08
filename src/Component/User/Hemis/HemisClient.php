@@ -32,7 +32,7 @@ final class HemisClient
 
     public function fetchAccessToken(string $code): string
     {
-        $response = $this->httpClient->request('POST', $this->config->getTokenUrl(), [
+        $response = $this->httpClient->request('POST', $this->config->getTokenUrl(), $this->tlsOptions() + [
             'headers' => ['Accept' => 'application/json'],
             'body' => [
                 'grant_type' => 'authorization_code',
@@ -58,7 +58,7 @@ final class HemisClient
 
     public function fetchProfile(string $accessToken): HemisProfile
     {
-        $response = $this->httpClient->request('GET', $this->config->getUserinfoUrl(), [
+        $response = $this->httpClient->request('GET', $this->config->getUserinfoUrl(), $this->tlsOptions() + [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Accept' => 'application/json',
@@ -68,6 +68,19 @@ final class HemisClient
         $raw = $response->getContent(false);
 
         return $this->mapProfile($this->unwrap($this->decode($raw, 'userinfo')));
+    }
+
+    /**
+     * HEMIS ba'zan TLS zanjiridagi oraliq sertifikatni yubormaydi — o'z
+     * CA fayl bilan tekshiramiz (config/certs/hemis-ca-chain.pem).
+     *
+     * @return array<string, mixed>
+     */
+    private function tlsOptions(): array
+    {
+        $caFile = $this->config->getCaFile();
+
+        return $caFile === null ? [] : ['cafile' => $caFile];
     }
 
     /**

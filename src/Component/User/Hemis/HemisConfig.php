@@ -52,6 +52,13 @@ final class HemisConfig
         return $this->parameterGetter->getString('hemis.scope');
     }
 
+    public function getCaFile(): ?string
+    {
+        $path = $this->parameterGetter->getString('hemis.cafile');
+
+        return is_file($path) ? $path : null;
+    }
+
     public function getFrontendReturnUrl(): string
     {
         return rtrim($this->parameterGetter->getString('frontend.url'), '/')
