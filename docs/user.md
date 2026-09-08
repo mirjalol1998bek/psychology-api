@@ -14,6 +14,7 @@ Talaba / psixolog / admin. Skeletdagi `User` **kengaytirilgan** (qayta yozilmaga
 | `studyLanguage` | ?`StudyLanguage` | yo'q bo'lsa `studyGroup` dan olinadi |
 | `image` | ?string | |
 | `isActive` | bool = true | `getIsActive()` |
+| `status` | `UserStatusEnum` = `active` | `pending`/`active`/`rejected` — kirish ruxsati (`auth.md`) |
 | `studyGroup` | ManyToOne `StudyGroup` | talaba uchun |
 | audit | `createdAt/updatedAt/By`, `deletedAt/By` (yumshoq o'chirish) |
 
@@ -33,6 +34,11 @@ Talaba / psixolog / admin. Skeletdagi `User` **kengaytirilgan** (qayta yozilmaga
 | `DELETE /api/users/{id}` | o'zi yoki `ROLE_ADMIN` (yumshoq) |
 | `POST /api/users/auth`, `.../refreshToken`, `/api/users/about_me` | auth |
 | `POST /api/students` | **`ROLE_ADMIN`** — `StudentCreateAction` + `StudentFactory`; `hemisId` unikal tekshiriladi |
+| `POST /api/users/{id}/approve` | **`ROLE_ADMIN`** — `UserApproveAction`; body `{"role":"ROLE_PSYCHOLOGIST"\|"ROLE_ADMIN"}`; `status=active` + rol |
+| `POST /api/users/{id}/reject` | **`ROLE_ADMIN`** — `UserRejectAction`; `status=rejected` |
+
+`GET /api/users` da `SearchFilter` `status` (`exact`) — admin `?status=pending`
+bilan tasdiq kutayotganlarni oladi.
 
 ## Invariantlar
 

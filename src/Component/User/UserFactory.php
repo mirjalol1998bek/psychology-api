@@ -8,6 +8,7 @@ use App\Component\User\Hemis\HemisProfile;
 use App\Entity\StudyGroup;
 use App\Entity\User;
 use App\Enum\RoleEnum;
+use App\Enum\UserStatusEnum;
 use DateTime;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -34,7 +35,7 @@ class UserFactory
         $user->setFullName($profile->fullName);
         $user->setImage($profile->picture);
         $user->setIsActive(true);
-        $user->setRoles([$this->roleFor($profile)->value]);
+        $this->applyAccessPolicy($user, $profile);
 
         if ($studyGroup !== null) {
             $user->setStudyGroup($studyGroup);
@@ -43,12 +44,20 @@ class UserFactory
         return $user;
     }
 
-    private function roleFor(HemisProfile $profile): RoleEnum
+    /**
+     * Xodim HEMIS orqali kirsa — admin tasdig'ini kutadi (rolsiz, pending).
+     * Talaba HEMIS "type" bo'yicha tasdiqlangan hisoblanadi.
+     */
+    private function applyAccessPolicy(User $user, HemisProfile $profile): void
     {
         if ($profile->isEmployee()) {
-            return RoleEnum::Psychologist;
+            $user->setStatus(UserStatusEnum::Pending);
+            $user->setRoles([]);
+
+            return;
         }
 
-        return RoleEnum::Student;
+        $user->setStatus(UserStatusEnum::Active);
+        $user->setRoles([RoleEnum::Student->value]);
     }
 }

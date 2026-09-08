@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Component\User\Hemis;
 
+use App\Component\Notification\NotificationDispatcher;
 use App\Component\User\UserFactory;
 use App\Component\User\UserManager;
 use App\Entity\StudyGroup;
 use App\Entity\User;
+use App\Enum\UserStatusEnum;
 use App\Repository\StudyGroupRepository;
 use App\Repository\UserRepository;
 
@@ -19,6 +21,7 @@ final class HemisLoginService
         private readonly UserFactory $userFactory,
         private readonly UserManager $userManager,
         private readonly StudyGroupRepository $studyGroupRepository,
+        private readonly NotificationDispatcher $notificationDispatcher,
     ) {
     }
 
@@ -26,14 +29,19 @@ final class HemisLoginService
     {
         $profile = $this->hemisClient->fetchProfile($this->hemisClient->fetchAccessToken($code));
         $user = $this->userRepository->findOneBy(['hemisId' => $profile->hemisId]);
+        $isNew = $user === null;
 
-        if ($user === null) {
+        if ($isNew) {
             $user = $this->userFactory->createFromHemis($profile, $this->resolveGroup($profile));
         } else {
             $this->refreshFromProfile($user, $profile);
         }
 
         $this->userManager->save($user, true);
+
+        if ($isNew && $user->getStatus() === UserStatusEnum::Pending) {
+            $this->notificationDispatcher->notifyAdminsOnAccessRequest($user);
+        }
 
         return $user;
     }

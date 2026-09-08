@@ -8,10 +8,10 @@ Universitet SSO orqali kirish. Standart OAuth2 **authorization code** oqimi.
 > Talabalar hozircha demo parol (`ask:seed:demo`) yoki admin impersonatsiyasi
 > (`POST /api/students/{id}/impersonate`) orqali kiradi.
 >
-> Callback'da xatolik bo'lsa `HemisCallbackAction` foydalanuvchini
-> `{FRONTEND_URL}/auth/hemis#error=<sabab>` ga qaytaradi (blank ekran emas),
-> `HemisClient` esa HEMIS javobining bir qismini xabarga qo'shadi. `state`
-> imzo umri — 30 daqiqa (`HemisStateSigner`).
+> Callback natijalari (`{FRONTEND_URL}/auth/hemis#...`):
+> `#access=&refresh=` — muvaffaqiyat; `#pending=1` — xodim tasdiq kutmoqda;
+> `#rejected=1` — admin rad etgan; `#error=<sabab>` — xatolik (blank ekran emas).
+> `state` imzo umri — 30 daqiqa (`HemisStateSigner`).
 
 ## Konfiguratsiya
 
@@ -63,13 +63,17 @@ callback'da tekshiradi. Sessiyasiz (stateless) — `state` o'zida `nonce` + vaqt
 - `hemisId = profile.id`
 - `email = profile.email ?? "{login}@hemis.uzswlu.uz"` (sintetik, unikal)
 - `fullName`, `image`
-- rol: `type === 'employee'` → `ROLE_PSYCHOLOGIST`; aks holda `ROLE_STUDENT`
-  (admin keyin qo'lda `ROLE_ADMIN` beradi)
+- **xodim** (`type === 'employee'`) → `status = pending`, `roles = []` —
+  tizimga kira olmaydi, admin `POST /api/users/{id}/approve` bilan rol beradi
+- **talaba** → `status = active`, `roles = [ROLE_STUDENT]`
 - talaba bo'lsa va `groupName` HEMIS'dan kelsa — mavjud `StudyGroup` ga
   `externalId`/`name` bo'yicha ulanadi (topilmasa `null`, admin biriktiradi)
 
 Mavjud foydalanuvchi `hemisId` bo'yicha topiladi; `fullName`/`image` yangilanadi,
-rol **o'zgartirilmaydi** (admin bergan rollar saqlanadi).
+rol va `status` **o'zgartirilmaydi** (admin bergan rollar saqlanadi).
+
+Yangi `pending` foydalanuvchi yaratilganda `HemisLoginService` barcha adminlarga
+`AccessRequest` bildirishnomasini yuboradi. To'liq oqim: [`auth.md`](auth.md).
 
 ## Endpointlar (`src/Controller/Hemis*Action`)
 

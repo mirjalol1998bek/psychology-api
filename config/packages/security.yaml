@@ -75,6 +75,7 @@ security:
             stateless: true
             security: true
             provider: entity_provider
+            user_checker: App\Security\UserStatusChecker
             # provider: jwt # if you use microservices
             jwt: ~
 

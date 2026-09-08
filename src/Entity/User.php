@@ -24,6 +24,7 @@ use App\Controller\UserCreateAction;
 use App\Controller\UserIsUniqueEmailAction;
 use App\Enum\RoleEnum;
 use App\Enum\StudyLanguage;
+use App\Enum\UserStatusEnum;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\DeletedAtSettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -127,7 +128,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt', 'updatedAt', 'email', 'fullName'])]
-#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial', 'hemisId' => 'exact', 'fullName' => 'partial', 'studyGroup' => 'exact', 'roles' => 'partial'])]
+#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial', 'hemisId' => 'exact', 'fullName' => 'partial', 'studyGroup' => 'exact', 'roles' => 'partial', 'status' => 'exact'])]
 //#[UniqueEntity('email', message: 'This email is already used')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements
@@ -183,6 +184,10 @@ class User implements
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     #[Groups(['user:read', 'users:read'])]
     private bool $isActive = true;
+
+    #[ORM\Column(type: Types::STRING, length: 16, enumType: UserStatusEnum::class, options: ['default' => 'active'])]
+    #[Groups(['user:read', 'users:read'])]
+    private UserStatusEnum $status = UserStatusEnum::Active;
 
     #[ORM\ManyToOne(targetEntity: StudyGroup::class, inversedBy: 'students')]
     #[Groups(['user:read', 'users:read', 'student:create', 'appeal:read:staff', 'passport:read:staff'])]
@@ -349,6 +354,18 @@ class User implements
     public function setIsActive(bool $isActive): self
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getStatus(): UserStatusEnum
+    {
+        return $this->status;
+    }
+
+    public function setStatus(UserStatusEnum $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }

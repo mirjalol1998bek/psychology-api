@@ -36,6 +36,35 @@ final class NotificationDispatcher
         }
     }
 
+    public function notifyAdminsOnAccessRequest(User $requester): void
+    {
+        $recipients = $this->adminRecipients();
+        $lastIndex = count($recipients) - 1;
+
+        foreach ($recipients as $index => $recipient) {
+            $notification = $this->notificationFactory->create(
+                $recipient,
+                NotificationType::AccessRequest,
+                'Yangi kirish so\'rovi',
+                ($requester->getFullName() ?? $requester->getEmail() ?? 'Xodim') . ' tizimga kirmoqchi. Rol bering yoki rad eting.',
+                '/admin/access-requests',
+            );
+            $this->notificationManager->save($notification, $index === $lastIndex);
+        }
+    }
+
+    public function notifyUserOnAccessApproved(User $user): void
+    {
+        $notification = $this->notificationFactory->create(
+            $user,
+            NotificationType::AccessApproved,
+            'Kirish ruxsati berildi',
+            'Administrator arizangizni tasdiqladi. Endi HEMIS orqali tizimga kira olasiz.',
+            '/',
+        );
+        $this->notificationManager->save($notification, true);
+    }
+
     public function notifyStudentOnAppealReply(Appeal $appeal): void
     {
         $student = $appeal->getStudent();
@@ -68,6 +97,14 @@ final class NotificationDispatcher
         }
 
         return array_values($byId);
+    }
+
+    /**
+     * @return list<User>
+     */
+    private function adminRecipients(): array
+    {
+        return array_values($this->userRepository->findByRole(RoleEnum::Admin->value));
     }
 
     private function previewOf(Appeal $appeal): string

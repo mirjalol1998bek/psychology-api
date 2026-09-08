@@ -10,4 +10,6 @@ enum NotificationType: string
     case AppealReply = 'appeal_reply';
     case AssignmentNew = 'assignment_new';
     case AppointmentReminder = 'appointment_reminder';
+    case AccessRequest = 'access_request';
+    case AccessApproved = 'access_approved';
 }

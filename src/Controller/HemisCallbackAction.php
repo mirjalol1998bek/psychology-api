@@ -11,6 +11,7 @@ use App\Component\User\Hemis\HemisStateSigner;
 use App\Component\User\TokensCreator;
 use App\Controller\Base\AbstractController;
 use App\Entity\User;
+use App\Enum\UserStatusEnum;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,6 +34,10 @@ class HemisCallbackAction extends AbstractController
             $code = $this->requireCode($request);
             $this->assertValidState($hemisStateSigner, (string) $request->query->get('state', ''));
             $user = $hemisLoginService->loginByCode($code);
+
+            if ($user->getStatus() !== UserStatusEnum::Active) {
+                return new RedirectResponse($this->buildStatusUrl($hemisConfig, $user->getStatus()));
+            }
 
             return new RedirectResponse($this->buildTokenUrl($hemisConfig, $tokensCreator, $user));
         } catch (Throwable $e) {
@@ -80,6 +85,13 @@ class HemisCallbackAction extends AbstractController
         ]);
 
         return $config->getFrontendReturnUrl() . '#' . $fragment;
+    }
+
+    private function buildStatusUrl(HemisConfig $config, UserStatusEnum $status): string
+    {
+        $key = $status === UserStatusEnum::Rejected ? 'rejected' : 'pending';
+
+        return $config->getFrontendReturnUrl() . '#' . http_build_query([$key => '1']);
     }
 
     private function buildErrorUrl(HemisConfig $config, string $message): string

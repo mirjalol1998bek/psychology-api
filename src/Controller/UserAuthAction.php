@@ -8,6 +8,7 @@ use App\Component\User\Exceptions\AuthException;
 use App\Component\User\TokensCreator;
 use App\Controller\Base\AbstractController;
 use App\Entity\User;
+use App\Enum\UserStatusEnum;
 use App\Repository\UserRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTEncodeFailureException;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,6 +38,10 @@ class UserAuthAction extends AbstractController
 
         if (!$passwordEncoder->isPasswordValid($user, $data->getPassword())) {
             $this->throwInvalidCredentials();
+        }
+
+        if ($user->getStatus() !== UserStatusEnum::Active) {
+            throw new AuthException('Hisobingiz faol emas. Administrator tasdig\'ini kuting.');
         }
 
         return $this->responseNormalized($tokensCreator->create($user));
