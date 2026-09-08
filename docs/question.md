@@ -1,0 +1,25 @@
+# Question
+
+Quiz ichidagi bitta savol.
+
+| Maydon | Tip | Izoh |
+|---|---|---|
+| `quiz` | ManyToOne `Quiz`, not null | |
+| `type` | `QuestionType` | `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`, `SINGLE_CHOICE_IMAGE`, `FIGURE`, `SCALE`, `WRITING` |
+| `text` | text | |
+| `imageUrl` | ?string | |
+| `position` | smallint | |
+| `isReversed` | bool = false | `getIsReversed()` — `SCORE_SCALE` da teskari ballash |
+| `options` | OneToMany `AnswerOption`, cascade persist+remove, orphanRemoval, `OrderBy position` | |
+
+`addOption()`, `hasOption(AnswerOption): bool`.
+
+## API
+
+| Operatsiya | Ruxsat |
+|---|---|
+| `GET /api/questions`, `.../{id}` | auth |
+| `POST`, `PATCH` | `ROLE_PSYCHOLOGIST` — variantlar bilan birga (`question:write`) |
+| `DELETE` | `ROLE_ADMIN` |
+
+Filtr: `quiz`.

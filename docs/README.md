@@ -5,28 +5,31 @@ shu yerdagi hujjat to'g'ri hisoblanadi. O'zgarish tartibi: **hujjat → kod**.
 
 Umumiy texnik tavsif: [`../tech.md`](../tech.md)
 
-## Entity hujjatlari
-
-_(entity'lar yaratilgan sari to'ldiriladi — `tech.md` §10.1 ro'yxati bo'yicha)_
-
-- [ ] `user.md`
-- [ ] `faculty.md`
-- [ ] `study-group.md`
-- [ ] `category.md`
-- [ ] `quiz.md`
-- [ ] `question.md`
-- [ ] `answer-option.md`
-- [ ] `assignment.md`
-- [ ] `attempt.md`
-- [ ] `attempt-answer.md`
-- [ ] `assessment-result.md`
-- [ ] `appointment-slot.md`
-- [ ] `appeal.md`
-- [ ] `student-passport.md`
-- [ ] `notification.md`
-
 ## Jarayon hujjatlari
 
-- [ ] `hemis-auth.md`
-- [ ] `attempt-scoring.md`
-- [ ] `notifications.md`
+- [x] [`domain-overview.md`](domain-overview.md) — domen modeli, aloqalar, rollar
+- [x] [`auth.md`](auth.md) — login/parol + HEMIS, `role_hierarchy`
+- [x] [`assessment-flow.md`](assessment-flow.md) — assignment → attempt → answers → submit
+- [x] [`assessment-scoring.md`](assessment-scoring.md) — `InstrumentType` bo'yicha ballash (Strategy)
+- [x] [`notifications.md`](notifications.md) — bildirishnomalar
+- [x] [`seed.md`](seed.md) — `ask:seed:assessments`
+
+## Entity hujjatlari
+
+- [x] [`user.md`](user.md)
+- [x] [`faculty.md`](faculty.md)
+- [x] [`study-group.md`](study-group.md)
+- [x] [`category.md`](category.md)
+- [x] [`quiz.md`](quiz.md)
+- [x] [`question.md`](question.md)
+- [x] [`answer-option.md`](answer-option.md)
+- [x] [`score-range.md`](score-range.md)
+- [x] [`assessment-interpretation.md`](assessment-interpretation.md)
+- [x] [`assignment.md`](assignment.md)
+- [x] [`attempt.md`](attempt.md)
+- [x] [`attempt-answer.md`](attempt-answer.md)
+- [x] [`assessment-result.md`](assessment-result.md)
+- [x] [`appointment-slot.md`](appointment-slot.md)
+- [x] [`appeal.md`](appeal.md)
+- [x] [`student-passport.md`](student-passport.md)
+- [x] [`notification.md`](notification.md)
