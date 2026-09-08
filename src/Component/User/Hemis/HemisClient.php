@@ -43,11 +43,14 @@ final class HemisClient
             ],
         ]);
 
-        $data = $response->toArray(false);
-        $token = $this->stringOrNull($data, 'access_token');
+        $raw = $response->getContent(false);
+        $data = $this->decode($raw, 'access-token');
+        $token = $this->stringOrNull($data, 'access_token') ?? $this->stringOrNull($this->unwrap($data), 'access_token');
 
         if ($token === null) {
-            throw new HemisAuthException('HEMIS access_token qaytmadi.');
+            throw new HemisAuthException(
+                'HEMIS access_token qaytmadi (HTTP ' . $response->getStatusCode() . '): ' . mb_substr($raw, 0, 300),
+            );
         }
 
         return $token;
@@ -62,7 +65,23 @@ final class HemisClient
             ],
         ]);
 
-        return $this->mapProfile($this->unwrap($response->toArray(false)));
+        $raw = $response->getContent(false);
+
+        return $this->mapProfile($this->unwrap($this->decode($raw, 'userinfo')));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decode(string $raw, string $step): array
+    {
+        $data = json_decode($raw, true);
+
+        if (is_array($data) === false) {
+            throw new HemisAuthException('HEMIS ' . $step . ' javobi JSON emas: ' . mb_substr($raw, 0, 300));
+        }
+
+        return $data;
     }
 
     /**

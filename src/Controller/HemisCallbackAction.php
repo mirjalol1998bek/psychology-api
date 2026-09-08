@@ -11,10 +11,11 @@ use App\Component\User\Hemis\HemisStateSigner;
 use App\Component\User\TokensCreator;
 use App\Controller\Base\AbstractController;
 use App\Entity\User;
-use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTEncodeFailureException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Throwable;
 
 class HemisCallbackAction extends AbstractController
 {
@@ -25,14 +26,20 @@ class HemisCallbackAction extends AbstractController
         HemisStateSigner $hemisStateSigner,
         HemisLoginService $hemisLoginService,
         TokensCreator $tokensCreator,
+        LoggerInterface $logger,
     ): RedirectResponse {
-        $this->assertNoError($request);
-        $code = $this->requireCode($request);
-        $this->assertValidState($hemisStateSigner, (string) $request->query->get('state', ''));
+        try {
+            $this->assertNoError($request);
+            $code = $this->requireCode($request);
+            $this->assertValidState($hemisStateSigner, (string) $request->query->get('state', ''));
+            $user = $hemisLoginService->loginByCode($code);
 
-        $user = $hemisLoginService->loginByCode($code);
+            return new RedirectResponse($this->buildTokenUrl($hemisConfig, $tokensCreator, $user));
+        } catch (Throwable $e) {
+            $logger->error('HEMIS callback failed: ' . $e->getMessage(), ['exception' => $e]);
 
-        return new RedirectResponse($this->buildReturnUrl($hemisConfig, $tokensCreator, $user));
+            return new RedirectResponse($this->buildErrorUrl($hemisConfig, $e->getMessage()));
+        }
     }
 
     private function assertNoError(Request $request): void
@@ -40,7 +47,9 @@ class HemisCallbackAction extends AbstractController
         $error = $request->query->get('error');
 
         if ($error !== null) {
-            throw new HemisAuthException('HEMIS xatosi: ' . (string) $error);
+            $description = (string) $request->query->get('error_description', '');
+
+            throw new HemisAuthException(trim('HEMIS: ' . (string) $error . ' ' . $description));
         }
     }
 
@@ -49,7 +58,7 @@ class HemisCallbackAction extends AbstractController
         $code = $request->query->get('code');
 
         if (is_string($code) === false || $code === '') {
-            throw new HemisAuthException('HEMIS "code" parametri yo\'q.');
+            throw new HemisAuthException('HEMIS "code" parametri qaytmadi.');
         }
 
         return $code;
@@ -58,14 +67,11 @@ class HemisCallbackAction extends AbstractController
     private function assertValidState(HemisStateSigner $signer, string $state): void
     {
         if ($signer->isValid($state) === false) {
-            throw new HemisAuthException('HEMIS "state" yaroqsiz yoki muddati o\'tgan.');
+            throw new HemisAuthException('HEMIS "state" yaroqsiz yoki muddati o\'tgan. Qaytadan urinib ko\'ring.');
         }
     }
 
-    /**
-     * @throws JWTEncodeFailureException
-     */
-    private function buildReturnUrl(HemisConfig $config, TokensCreator $tokensCreator, User $user): string
+    private function buildTokenUrl(HemisConfig $config, TokensCreator $tokensCreator, User $user): string
     {
         $tokens = $tokensCreator->create($user);
         $fragment = http_build_query([
@@ -74,5 +80,10 @@ class HemisCallbackAction extends AbstractController
         ]);
 
         return $config->getFrontendReturnUrl() . '#' . $fragment;
+    }
+
+    private function buildErrorUrl(HemisConfig $config, string $message): string
+    {
+        return $config->getFrontendReturnUrl() . '#' . http_build_query(['error' => $message]);
     }
 }

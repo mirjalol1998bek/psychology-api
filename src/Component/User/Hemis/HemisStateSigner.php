@@ -8,7 +8,7 @@ use App\Component\Core\ParameterGetter;
 
 final class HemisStateSigner
 {
-    private const LIFETIME_SECONDS = 600;
+    private const LIFETIME_SECONDS = 1800;
 
     public function __construct(private readonly ParameterGetter $parameterGetter)
     {

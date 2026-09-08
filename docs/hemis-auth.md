@@ -2,6 +2,17 @@
 
 Universitet SSO orqali kirish. Standart OAuth2 **authorization code** oqimi.
 
+> **Muhim:** hozirgi `HEMIS_CLIENT_ID=4` — **xodim (Xodim ID)** OAuth klienti
+> (`hemis.uzswlu.uz/dashboard/login`). Talabalar bu klient orqali kira olmaydi —
+> ular uchun alohida `studentoauth` klienti kerak (client_id/secret hali yo'q).
+> Talabalar hozircha demo parol (`ask:seed:demo`) yoki admin impersonatsiyasi
+> (`POST /api/students/{id}/impersonate`) orqali kiradi.
+>
+> Callback'da xatolik bo'lsa `HemisCallbackAction` foydalanuvchini
+> `{FRONTEND_URL}/auth/hemis#error=<sabab>` ga qaytaradi (blank ekran emas),
+> `HemisClient` esa HEMIS javobining bir qismini xabarga qo'shadi. `state`
+> imzo umri — 30 daqiqa (`HemisStateSigner`).
+
 ## Konfiguratsiya
 
 | O'zgaruvchi | Joyi | Izoh |

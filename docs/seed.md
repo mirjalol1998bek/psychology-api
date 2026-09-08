@@ -31,6 +31,22 @@ Yaratiladigan kategoriyalar:
 - figure: figura kaliti (`Doira`/...), `imageUrl` = mdi ikona nomi
 - scale: `null` (faqat `score` 1–4)
 
+## `ask:seed:demo` — demo hisoblar
+
+```bash
+docker compose exec php bin/console ask:seed:demo
+```
+
+`ask:seed:assessments` ni ham chaqiradi, so'ng (idempotent):
+
+- `Demo fakultet` + `DEMO-01` guruh (uz)
+- 3 hisob (parol `demo1234`): `admin@demo.uz` (ADMIN), `psixolog@demo.uz`
+  (PSYCHOLOGIST), `talaba@demo.uz` (STUDENT, DEMO-01 da)
+- Barcha metodikalar `DEMO-01` ga biriktiriladi
+
+Frontend login sahifasidagi "Login va parol" — shu hisoblar bilan.
+`src/Component/Assessment/Seed/DemoSeeder.php`.
+
 ## Ibodullayev shkalasi va boshqalar
 
 Seed'ga kiritilmagan (rasmiy savol matni kerak). Qo'shish tartibi —
