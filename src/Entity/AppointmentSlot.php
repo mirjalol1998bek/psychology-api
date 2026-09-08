@@ -17,6 +17,7 @@ use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Traits\CreatedAtAccessorsTrait;
 use App\Enum\AppointmentStatus;
 use App\Repository\AppointmentSlotRepository;
+use App\State\AppointmentSlotCreateProcessor;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
@@ -27,7 +28,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(security: "is_granted('ROLE_PSYCHOLOGIST')"),
+        new Post(
+            security: "is_granted('ROLE_PSYCHOLOGIST')",
+            processor: AppointmentSlotCreateProcessor::class,
+        ),
         new Patch(security: "is_granted('ROLE_PSYCHOLOGIST')"),
         new Delete(security: "is_granted('ROLE_PSYCHOLOGIST')"),
     ],
@@ -51,7 +55,7 @@ class AppointmentSlot implements CreatedAtSettableInterface
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['appointment:read', 'appointment:write'])]
+    #[Groups(['appointment:read'])]
     private ?User $psychologist = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
