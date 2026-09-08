@@ -156,4 +156,28 @@ class Assignment implements CreatedAtSettableInterface
 
         return $this->endAt === null || $moment <= $this->endAt;
     }
+
+    #[Groups(['assignment:read'])]
+    public function getGroupId(): ?int
+    {
+        return $this->studyGroup?->getId();
+    }
+
+    #[Groups(['assignment:read'])]
+    public function getGroupName(): ?string
+    {
+        return $this->studyGroup?->getName();
+    }
+
+    #[Groups(['assignment:read'])]
+    public function getFacultyName(): ?string
+    {
+        return $this->studyGroup?->getFaculty()?->getName();
+    }
+
+    #[Groups(['assignment:read'])]
+    public function getFacultyId(): ?int
+    {
+        return $this->studyGroup?->getFaculty()?->getId();
+    }
 }
