@@ -212,6 +212,24 @@ class StudentPassport implements UpdatedAtSettableInterface
         return $this;
     }
 
+    #[Groups(['passport:read:staff'])]
+    public function getStudentId(): ?int
+    {
+        return $this->student?->getId();
+    }
+
+    #[Groups(['passport:read:staff'])]
+    public function getStudentHemisId(): ?string
+    {
+        return $this->student?->getHemisId();
+    }
+
+    #[Groups(['passport:read:staff'])]
+    public function getStudentName(): ?string
+    {
+        return $this->student?->getFullName();
+    }
+
     #[Groups(['passport:read'])]
     public function getCompleteness(): int
     {

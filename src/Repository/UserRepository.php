@@ -37,6 +37,20 @@ class UserRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return list<User>
+     */
+    public function findStudentsByGroup(int $studyGroupId): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.studyGroup = :group')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('group', $studyGroupId)
+            ->orderBy('u.fullName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // /**
     //  * @return User[] Returns an array of User objects
     //  */
