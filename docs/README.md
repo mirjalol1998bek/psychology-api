@@ -13,6 +13,8 @@ Umumiy texnik tavsif: [`../tech.md`](../tech.md)
 - [x] [`assessment-scoring.md`](assessment-scoring.md) — `InstrumentType` bo'yicha ballash (Strategy)
 - [x] [`notifications.md`](notifications.md) — bildirishnomalar
 - [x] [`seed.md`](seed.md) — `ask:seed:assessments`
+- [x] [`hemis-auth.md`](hemis-auth.md) — HEMIS OAuth2 kirish oqimi
+- [x] [`reports.md`](reports.md) — guruh natijalari / pasportlar eksporti
 
 ## Entity hujjatlari
 

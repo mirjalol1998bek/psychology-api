@@ -36,7 +36,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             denormalizationContext: ['groups' => ['passport:write']],
             name: 'putMyPassport',
         ),
-        new GetCollection(security: "is_granted('ROLE_PSYCHOLOGIST')"),
+        new GetCollection(
+            security: "is_granted('ROLE_PSYCHOLOGIST')",
+            normalizationContext: ['groups' => ['passport:read', 'passport:read:staff']],
+        ),
     ],
     normalizationContext: ['groups' => ['passport:read']],
     security: "is_granted('IS_AUTHENTICATED_FULLY')",

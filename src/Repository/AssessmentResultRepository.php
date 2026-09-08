@@ -17,4 +17,22 @@ class AssessmentResultRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, AssessmentResult::class);
     }
+
+    /**
+     * @return list<AssessmentResult>
+     */
+    public function findByGroupAndCategory(int $studyGroupId, int $categoryId): array
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.attempt', 'a')
+            ->join('a.student', 's')
+            ->join('a.quiz', 'q')
+            ->andWhere('s.studyGroup = :group')
+            ->andWhere('q.category = :category')
+            ->setParameter('group', $studyGroupId)
+            ->setParameter('category', $categoryId)
+            ->orderBy('s.fullName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -564,12 +564,16 @@ Domen shakllari bo'yicha manba: `psychology-front/src/types/domain.ts`,
 - [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, Zung
 - [x] `docs/` — barcha entity + jarayon hujjatlari
 
+- [x] HEMIS OAuth2 (`docs/hemis-auth.md` — authorization code oqimi,
+  `src/Component/User/Hemis/`, `GET /api/auth/hemis` + `/callback/hemis`)
+- [x] Guruh eksporti: `GET /api/admin/group_results?studyGroup=&category=`,
+  `GET /api/student_passports?student.studyGroup=` ([`docs/reports.md`](docs/reports.md))
+- [x] "Talaba sifatida ko'rish": `POST /api/students/{id}/impersonate` (admin)
+- [x] Frontend: 3000-port + `/api` proxy + haqiqiy HEMIS kirish
+
 **Qolgan:**
 
 - [ ] PHPStan + PHP-CS-Fixer + PHPUnit + CI, `Makefile` to'ldirish
-- [ ] HEMIS OAuth2 (`docs/auth.md` → `src/Security/` + `UserFactory::createFromHemis`)
-- [ ] Guruh kesimida eksport: `GET /api/admin/group_results?group=&instrument=`,
-  `GET /api/admin/group_passports?group=` (DTO + State Provider)
-- [ ] "Talaba sifatida ko'rish" — impersonatsiya token'i
 - [ ] Ibodullayev shkalasi (rasmiy savol matni bilan, seed yoki admin API)
-- [ ] `psychology-front` `src/services/*` qatlamini API'ga ulash
+- [ ] `psychology-front` `src/services/*` (testlar/natijalar/murojaat/pasport)
+  qatlamini API'ga ulash — hozircha localStorage mock, faqat kirish real

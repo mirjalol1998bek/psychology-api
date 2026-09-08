@@ -53,5 +53,13 @@ lekin API javobida `student` maydoni `appeal:read:staff` guruhida emas va
 
 ## "Talaba sifatida ko'rish" (impersonatsiya)
 
-Admin talaba tokenini oladigan cheklangan muddatli mexanizm — hali qo'shilmagan.
-Hozircha frontend admin roli bilan talaba UI'sini ko'rsatadi.
+`POST /api/students/{id}/impersonate` — **`ROLE_ADMIN`**. Berilgan talaba uchun
+bizning JWT juftligini (`TokensDto`, `json`) qaytaradi. Admin bu tokenni
+ishlatib, talaba ko'radigan barcha endpointlarga kiradi (test topshirish,
+natijalar, pasport). Talaba bo'lmagan foydalanuvchiga `400`.
+
+## HEMIS orqali kirish
+
+To'liq: [`hemis-auth.md`](hemis-auth.md). Qisqacha: `GET /api/auth/hemis` →
+HEMIS; `GET /api/auth/callback/hemis` → bizning JWT → `FRONTEND_URL` (`:3000`)
+ga `#access`/`#refresh` bilan 302. Ikkovi `security.yaml` da `security: false`.
