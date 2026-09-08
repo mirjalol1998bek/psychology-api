@@ -43,4 +43,6 @@ WORKDIR /var/www/html
 COPY cron-file /etc/cron.d/cron-file
 COPY run-daemons.sh /run-daemons.sh
 
-ENTRYPOINT /bin/bash /run-daemons.sh
+RUN sed -i 's/\r$//' /run-daemons.sh /etc/cron.d/cron-file && chmod +x /run-daemons.sh
+
+ENTRYPOINT ["/bin/bash", "/run-daemons.sh"]
