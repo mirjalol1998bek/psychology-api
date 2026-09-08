@@ -25,3 +25,6 @@
 !/docker/mailserver/dkim/
 !/docker/mailserver/dkim/.gitkeep
 !/docker/mailserver/init-dkim.sh
+
+# Symfony auto-generated config reference (IDE aid)
+/config/reference.php
