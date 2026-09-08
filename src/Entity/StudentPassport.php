@@ -34,6 +34,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             provider: CurrentUserPassportProvider::class,
             processor: PassportPutProcessor::class,
             denormalizationContext: ['groups' => ['passport:write']],
+            extraProperties: ['standard_put' => true],
             name: 'putMyPassport',
         ),
         new GetCollection(

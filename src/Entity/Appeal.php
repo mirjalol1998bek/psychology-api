@@ -226,4 +226,20 @@ class Appeal implements CreatedAtSettableInterface
 
         return $this->student?->getFullName();
     }
+
+    #[Groups(['appeal:read'])]
+    public function getSenderGroup(): ?string
+    {
+        if ($this->getIsAnonymous() === true) {
+            return null;
+        }
+
+        return $this->student?->getStudyGroup()?->getName();
+    }
+
+    #[Groups(['appeal:read'])]
+    public function getRepliedByName(): ?string
+    {
+        return $this->repliedBy?->getFullName();
+    }
 }
