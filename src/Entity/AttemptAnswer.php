@@ -27,17 +27,38 @@ class AttemptAnswer
 
     #[ORM\ManyToOne(targetEntity: Question::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['attempt:read:full', 'attempt-answer:read'])]
+    #[Groups(['attempt-answer:read'])]
     private ?Question $question = null;
 
     #[ORM\ManyToMany(targetEntity: AnswerOption::class)]
     #[ORM\JoinTable(name: 'attempt_answer_option')]
-    #[Groups(['attempt:read:full', 'attempt-answer:read'])]
+    #[Groups(['attempt-answer:read'])]
     private Collection $selectedOptions;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['attempt:read:full', 'attempt-answer:read'])]
     private ?string $textValue = null;
+
+    #[Groups(['attempt:read:full'])]
+    public function getQuestionId(): ?int
+    {
+        return $this->question?->getId();
+    }
+
+    /**
+     * @return list<int>
+     */
+    #[Groups(['attempt:read:full'])]
+    public function getSelectedOptionIds(): array
+    {
+        $ids = [];
+
+        foreach ($this->selectedOptions as $option) {
+            $ids[] = (int) $option->getId();
+        }
+
+        return $ids;
+    }
 
     public function __construct()
     {

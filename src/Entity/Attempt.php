@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Component\Assessment\Dto\SaveAnswersInput;
 use App\Component\Assessment\Dto\StartAttemptInput;
+use App\Controller\AttemptResetAction;
 use App\Controller\AttemptStartAction;
 use App\Controller\AttemptSubmitAction;
 use App\Controller\AttemptSaveAnswersAction;
@@ -33,12 +34,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(provider: StudentAttemptProvider::class),
-        new Get(security: "object.getStudent() == user || is_granted('ROLE_PSYCHOLOGIST')"),
+        new Get(
+            security: "object.getStudent() == user || is_granted('ROLE_PSYCHOLOGIST')",
+            normalizationContext: ['groups' => ['attempt:read', 'attempt:read:full']],
+        ),
         new Post(
             uriTemplate: 'attempts/start',
             controller: AttemptStartAction::class,
             input: StartAttemptInput::class,
             name: 'startAttempt',
+        ),
+        new Post(
+            uriTemplate: 'attempts/{id}/reset',
+            controller: AttemptResetAction::class,
+            input: false,
+            name: 'resetAttempt',
         ),
         new Post(
             uriTemplate: 'attempts/{id}/answers',
@@ -93,7 +103,7 @@ class Attempt implements CreatedAtSettableInterface, UpdatedAtSettableInterface
     #[Groups(['attempt:read:full'])]
     private Collection $answers;
 
-    #[ORM\OneToOne(mappedBy: 'attempt', targetEntity: AssessmentResult::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'attempt', targetEntity: AssessmentResult::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['attempt:read'])]
     private ?AssessmentResult $result = null;
 
