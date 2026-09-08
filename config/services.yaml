@@ -6,6 +6,16 @@
 parameters:
     tokens_creator.access_expiration_period: '%env(TOKEN_ACCESS_EXPIRATION_PERIOD)%'
     tokens_creator.refresh_expiration_period: '%env(TOKEN_REFRESH_EXPIRATION_PERIOD)%'
+    hemis.client_id: '%env(HEMIS_CLIENT_ID)%'
+    hemis.client_secret: '%env(HEMIS_CLIENT_SECRET)%'
+    hemis.api_token: '%env(HEMIS_API_TOKEN)%'
+    hemis.auth_url: '%env(HEMIS_AUTH_URL)%'
+    hemis.token_url: '%env(HEMIS_TOKEN_URL)%'
+    hemis.userinfo_url: '%env(HEMIS_USERINFO_URL)%'
+    hemis.redirect_uri: '%env(HEMIS_REDIRECT_URI)%'
+    hemis.scope: '%env(HEMIS_SCOPE)%'
+    frontend.url: '%env(FRONTEND_URL)%'
+    frontend.hemis_return_path: '%env(FRONTEND_HEMIS_RETURN_PATH)%'
 
 services:
     # default configuration for services in *this* file

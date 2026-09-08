@@ -23,6 +23,12 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
+        hemis_auth:
+            pattern: ^/api/auth/(hemis|callback/hemis)$
+            security: false
+            methods:
+                - get
+
         docs_jsonld:
             pattern: ^/api/docs.jsonld$
             security: false
