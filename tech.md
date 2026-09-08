@@ -358,10 +358,19 @@ private function findBestSplitPosition(string $content): int
 - `RoleEnum: string` — `ROLE_STUDENT`, `ROLE_PSYCHOLOGIST`, `ROLE_ADMIN`
   (Symfony `roles[]` bilan mos).
 - `StudyLanguage: string` — `uz`, `ru`
-- `InstrumentType: string` — `FREQUENCY_BASED`, `RANKING_BASED`,
-  `SCORE_RANGE_BASED`
+- **`InstrumentType: string`** — **ballash algoritmi** (metodika turi emas).
+  Yangi metodika (Zung, Ibodullayev shkalasi, ...) qo'shish — bu **`Category`
+  qatori + savol/ball ma'lumoti**, yangi kod emas. Qiymatlari:
+  - `TEMPERAMENT_STATEMENTS` — har bayonotga "Ha/Yo'q"; `AnswerOption.categoryKey`
+    bo'yicha "Ha"lar sanaladi, eng ko'p ballli kategoriya natija (uz temperament).
+  - `TEMPERAMENT_CHOICE` — har savolga bitta javob; `option.categoryKey` bo'yicha
+    eng ko'p tanlangan kategoriya natija (ru temperament).
+  - `FIGURE_CHOICE` — bitta figura tanlanadi; o'sha figura natija (psixogeometrik).
+  - `SCORE_SCALE` — variant ballari yig'iladi → `ScoreRange` oralig'i → xulosa
+    (Zung depressiya shkalasi, Ibodullayev shkalasi, nevrasteniya so'rovnomasi
+    va h.k.). Teskari (reverse) savollar `Question.getIsReversed()` orqali.
 - `QuestionType: string` — `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`,
-  `SINGLE_CHOICE_IMAGE`, `WRITING`
+  `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE_1_4` (Zung), `SCALE_0_3`
 - `AttemptStatus: string` — `not_started`, `in_progress`, `submitted`, `reviewed`
 - `AppointmentStatus: string` — `free`, `booked`, `cancelled`
 - `AppealMode: string` — `named`, `anonymous`
@@ -369,6 +378,8 @@ private function findBestSplitPosition(string $content): int
 - `AppealTopic: string` — `question`, `appointment`, `stress`, `other`
 - `FamilyStatus: string` — `married`, `single`
 - `LivingEnvironment: string` — `calm`, `problematic`
+- `NotificationType: string` — `appeal_new`, `appeal_reply`, `assignment_new`,
+  `appointment_reminder`
 
 ### 10.2 Entity'lar (har biri uchun `docs/*.md`)
 
@@ -377,11 +388,12 @@ private function findBestSplitPosition(string $content): int
 | `User` | Talaba / psixolog / admin. HEMIS profili + rollar. | `docs/user.md` |
 | `Faculty` | Fakultet (HEMIS'dan). | `docs/faculty.md` |
 | `StudyGroup` | Guruh, fakultetga tegishli, ta'lim tili. | `docs/study-group.md` |
-| `Category` | Metodika kategoriyasi + `InstrumentType`. | `docs/category.md` |
+| `Category` | Metodika (Temperament, Psixogeometrik, Zung, Ibodullayev, ...) + `InstrumentType` (ballash algoritmi). | `docs/category.md` |
 | `Quiz` | Kategoriya ichidagi test. `studyLanguage` (uz/ru variantlar). | `docs/quiz.md` |
-| `Question` | Savol + `QuestionType` + tartib. | `docs/question.md` |
+| `Question` | Savol + `QuestionType` + tartib + `getIsReversed()`. | `docs/question.md` |
 | `AnswerOption` | Javob varianti (matn/rasm, ball, `categoryKey`). | `docs/answer-option.md` |
-| `AssessmentInterpretation` | Natija matni (temperament tipi / figura tavsifi), uz/ru. | `docs/assessment-interpretation.md` |
+| `ScoreRange` | `SCORE_SCALE` uchun ball oralig'i → natija kaliti (Zung/Ibodullayev). | `docs/score-range.md` |
+| `AssessmentInterpretation` | Natija matni (temperament tipi / figura / ball oralig'i tavsifi), uz/ru. | `docs/assessment-interpretation.md` |
 | `Assignment` | Kategoriyani fakultet/guruhga biriktirish + muddat. | `docs/assignment.md` |
 | `Attempt` | Talabaning bitta metodika bo'yicha urinishi. | `docs/attempt.md` |
 | `AttemptAnswer` | Urinish ichidagi bitta javob. | `docs/attempt-answer.md` |
@@ -410,6 +422,7 @@ Skeletdagi `User` ga qo'shiladi:
 ```
 Faculty 1───* StudyGroup 1───* User(student)
 Category 1───* Quiz 1───* Question 1───* AnswerOption
+Category 1───* ScoreRange
 Category 1───* AssessmentInterpretation
 Category 1───* Assignment *───1 StudyGroup
 Assignment 1───* Attempt *───1 User(student)
@@ -421,23 +434,32 @@ User(student) 1───1 StudentPassport
 User 1───* Notification
 ```
 
-### 10.5 Ballash — `src/Component/Assessment/`
+### 10.5 Ballash — `src/Component/Assessment/Scoring/`
 
-`InstrumentType` bo'yicha **Strategy**: `ScorerInterface` +
-`TemperamentStatementScorer`, `TemperamentChoiceScorer`,
-`PsychogeometricScorer`, `ScoreRangeScorer`. `ScorerResolver` mos strategiyani
-tanlaydi.
+`InstrumentType` bo'yicha **Strategy**: `ScorerInterface`
+(`supports(InstrumentType): bool`, `score(Attempt): ScoredResult`) +
+`ScorerResolver` (barcha scorer'larni `#[AutowireIterator]` orqali oladi,
+mosini qaytaradi).
 
-- **`FREQUENCY_BASED` (temperament)** — `AnswerOption.categoryKey` bo'yicha "Ha"
-  javoblar sanaladi; eng ko'p ball to'plagan kategoriya natija.
-  - uz: 80 bayonot (`YES_NO`).
-  - ru guruhlar: 14 tanlovli savol — alohida `Quiz`, `studyLanguage=ru`.
-- **`RANKING_BASED` (psixogeometrik)** — talaba **bitta figurani** tanlaydi;
-  o'sha figura natija.
-- **`SCORE_RANGE_BASED` (nevrasteniya)** — ball yig'indisi → oraliq → xulosa
-  matni.
+| Scorer | `InstrumentType` | Algoritm |
+|---|---|---|
+| `TemperamentStatementScorer` | `TEMPERAMENT_STATEMENTS` | "Ha" javoblarni `option.categoryKey` bo'yicha sanaydi; argmax kategoriya. `breakdown` = kategoriya → ball. |
+| `TemperamentChoiceScorer` | `TEMPERAMENT_CHOICE` | Tanlangan `option.categoryKey` bo'yicha sanaydi; argmax kategoriya. |
+| `FigureChoiceScorer` | `FIGURE_CHOICE` | Tanlangan figura `option.categoryKey` = natija. `breakdown` = bo'sh. |
+| `ScoreScaleScorer` | `SCORE_SCALE` | Barcha javob variantlari ballini yig'adi (reverse savolda `max - score`); `ScoreRange` orasidan mosini topadi → natija kaliti. `breakdown` = `[{label: 'Ball', value: total}]`. |
 
-Natija matnlari `AssessmentInterpretation` dan, `studyLanguage` bo'yicha.
+`ScoredResult` (`readonly`): `resultKey`, `score?`, `breakdown` (VO massivi).
+`AttemptManager::submit()` → `ScorerResolver` → `ScoredResult` →
+`AssessmentInterpretationRepository` dan `resultKey` + `attempt.studyLanguage`
+bo'yicha matn → `AssessmentResult` saqlanadi.
+
+**Yangi metodika qo'shish** (masalan Zung): `Category(instrumentType: SCORE_SCALE)`
++ `Quiz` + `Question`lar + `AnswerOption`lar (ball bilan) + `ScoreRange`lar +
+`AssessmentInterpretation`lar. **Kod yozilmaydi** — faqat fixture/seed yoki
+admin API orqali ma'lumot.
+
+Manba ma'lumot: `../psychology-front/src/data/assessments/*`,
+`../psychology-front/src/utils/scoring.ts`.
 
 Ballash **`AttemptManager::submit()`** ichida `ScorerResolver` orqali chaqiriladi
 (State Processor emas — migratsiyadan qayta hisoblash ham ishlashi uchun).

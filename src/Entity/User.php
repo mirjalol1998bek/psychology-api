@@ -15,12 +15,15 @@ use ApiPlatform\OpenApi\Model\Operation;
 use App\Component\User\Dtos\RefreshTokenRequestDto;
 use App\Component\User\Dtos\TokensDto;
 use App\Controller\DeleteAction;
+use App\Controller\StudentCreateAction;
 use App\Controller\UserAboutMeAction;
 use App\Controller\UserAuthAction;
 use App\Controller\UserAuthByRefreshTokenAction;
 use App\Controller\UserChangePasswordAction;
 use App\Controller\UserCreateAction;
 use App\Controller\UserIsUniqueEmailAction;
+use App\Enum\RoleEnum;
+use App\Enum\StudyLanguage;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\DeletedAtSettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -106,6 +109,16 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "object == user || is_granted('ROLE_ADMIN')",
             name: 'changePassword',
         ),
+        new Post(
+            uriTemplate: 'students',
+            controller: StudentCreateAction::class,
+            openapi: new Operation(
+                summary: 'Admin: yangi talaba yaratish (test uchun)'
+            ),
+            denormalizationContext: ['groups' => ['student:create']],
+            security: "is_granted('ROLE_ADMIN')",
+            name: 'createStudent',
+        ),
     ],
     normalizationContext: ['groups' => ['user:read', 'users:read']],
     denormalizationContext: ['groups' => ['user:write']],
@@ -113,8 +126,8 @@ use Symfony\Component\Validator\Constraints as Assert;
         'standard_put' => true,
     ],
 )]
-#[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt', 'updatedAt', 'email'])]
-#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial'])]
+#[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt', 'updatedAt', 'email', 'fullName'])]
+#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial', 'hemisId' => 'exact', 'fullName' => 'partial', 'studyGroup' => 'exact', 'roles' => 'partial'])]
 //#[UniqueEntity('email', message: 'This email is already used')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements
@@ -137,7 +150,7 @@ class User implements
     #[Groups(['users:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     #[Assert\Email]
     #[Groups(['users:read', 'user:write', 'user:put:write', 'user:isUniqueEmail:write'])]
     private ?string $email = null;
@@ -150,6 +163,30 @@ class User implements
     #[ORM\Column(type: 'json')]
     #[Groups(['user:read'])]
     private array $roles = [];
+
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true, unique: true)]
+    #[Groups(['user:read', 'users:read', 'student:create'])]
+    private ?string $hemisId = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Groups(['user:read', 'users:read', 'user:put:write', 'student:create', 'attempt:read', 'appeal:read:staff', 'passport:read:staff'])]
+    private ?string $fullName = null;
+
+    #[ORM\Column(type: Types::STRING, length: 8, nullable: true, enumType: StudyLanguage::class)]
+    #[Groups(['user:read', 'student:create'])]
+    private ?StudyLanguage $studyLanguage = null;
+
+    #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
+    #[Groups(['user:read', 'user:put:write'])]
+    private ?string $image = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    #[Groups(['user:read', 'users:read'])]
+    private bool $isActive = true;
+
+    #[ORM\ManyToOne(targetEntity: StudyGroup::class, inversedBy: 'students')]
+    #[Groups(['user:read', 'users:read', 'student:create', 'appeal:read:staff', 'passport:read:staff'])]
+    private ?StudyGroup $studyGroup = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['user:read'])]
@@ -254,5 +291,99 @@ class User implements
         $this->email = $email;
 
         return $this;
+    }
+
+    public function getHemisId(): ?string
+    {
+        return $this->hemisId;
+    }
+
+    public function setHemisId(?string $hemisId): self
+    {
+        $this->hemisId = $hemisId;
+
+        return $this;
+    }
+
+    public function getFullName(): ?string
+    {
+        return $this->fullName;
+    }
+
+    public function setFullName(?string $fullName): self
+    {
+        $this->fullName = $fullName;
+
+        return $this;
+    }
+
+    public function getStudyLanguage(): ?StudyLanguage
+    {
+        return $this->studyLanguage ?? $this->studyGroup?->getStudyLanguage();
+    }
+
+    public function setStudyLanguage(?StudyLanguage $studyLanguage): self
+    {
+        $this->studyLanguage = $studyLanguage;
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): self
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getIsActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getStudyGroup(): ?StudyGroup
+    {
+        return $this->studyGroup;
+    }
+
+    public function setStudyGroup(?StudyGroup $studyGroup): self
+    {
+        $this->studyGroup = $studyGroup;
+
+        return $this;
+    }
+
+    #[Groups(['user:read', 'users:read'])]
+    public function getFaculty(): ?Faculty
+    {
+        return $this->studyGroup?->getFaculty();
+    }
+
+    public function getPrimaryRole(): RoleEnum
+    {
+        foreach ([RoleEnum::Admin, RoleEnum::Psychologist, RoleEnum::Student] as $role) {
+            if (in_array($role->value, $this->roles, true)) {
+                return $role;
+            }
+        }
+
+        return RoleEnum::Student;
+    }
+
+    public function hasRole(RoleEnum $role): bool
+    {
+        return in_array($role->value, $this->getRoles(), true);
     }
 }

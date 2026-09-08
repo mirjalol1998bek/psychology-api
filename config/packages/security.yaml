@@ -3,6 +3,10 @@ security:
     password_hashers:
         App\Entity\User: auto
 
+    role_hierarchy:
+        ROLE_PSYCHOLOGIST: [ROLE_STUDENT]
+        ROLE_ADMIN: [ROLE_PSYCHOLOGIST]
+
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
         entity_provider:
