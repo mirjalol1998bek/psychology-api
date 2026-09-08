@@ -2,7 +2,7 @@
 
 > **Bu hujjat koddan muhimroq.** Har qanday o'zgarish avval shu yerda (yoki
 > `/docs` dagi mos faylda) yoziladi, keyin kodga tushiriladi. Kod bilan hujjat
-> ziddiyatga tushsa — hujjat to'g'ri hisoblanadi.
+> ziddiyatga tushsa — **hujjat to'g'ri** hisoblanadi.
 >
 > **Har safar kod yozishdan oldin shu fayl va tegishli `/docs/*.md` o'qiladi.**
 
@@ -11,20 +11,22 @@
 ## 1. Loyiha haqida
 
 `psychology-api` — universitet psixologik xizmati platformasining backend qismi.
-Frontend alohida loyiha: `../psychology-front` (Vue 3 + Vuetify).
+Frontend alohida loyiha: `../psychology-front` (Vue 3 + Vuetify), hozircha mock
+ma'lumot bilan ishlaydi.
 
-Platforma quyidagilarni ta'minlaydi:
+Platforma imkoniyatlari:
 
-- Talabalarga psixologik metodikalar (temperament, psixogeometrik va h.k.)
+- Talabalarga psixologik metodikalar (temperament, psixogeometrik, nevrasteniya)
   biriktirish, ularni topshirish va natijalarni saqlash.
-- Psixolog/admin uchun fakultet–guruh–talaba kesimida natijalar va hisobotlar.
+- Psixolog/admin uchun fakultet–guruh–talaba kesimida natijalar va hisobotlar
+  (Excel/CSV eksport).
 - Talaba → psixolog **murojaat** kanali (anonim yoki ismli), javob berish.
 - **Ijtimoiy-psixologik pasport** — har bir talabadan yig'iladigan so'rovnoma.
-- Psixolog **qabul kalendari** (bo'sh/band slotlar).
+- Psixolog **qabul kalendari** (bo'sh/band/bekor slotlar).
 - Bildirishnomalar (yangi murojaat / javob).
 
-Domen modeli ishlab turgan `dashboard-uzswlu` loyihasidagi `psixologiya`
-modulidan meros oladi, lekin API mustaqil qayta yoziladi.
+Loyiha **`kadirov/api-starter-kit`** skeleti asosida qurilgan. Skeletdan tayyor
+kelgan narsalar §4 da.
 
 ---
 
@@ -32,257 +34,261 @@ modulidan meros oladi, lekin API mustaqil qayta yoziladi.
 
 | Qatlam | Texnologiya |
 |---|---|
-| Til | PHP 8.3+ |
-| Framework | Symfony 7.x |
-| API | API Platform 4.x |
-| ORM | Doctrine ORM 3.x |
-| MB | PostgreSQL 16 |
-| Auth | LexikJWTAuthenticationBundle (JWT) + HEMIS OAuth2 |
+| Til | PHP **8.5** |
+| Framework | Symfony **8.0** |
+| API | API Platform **4.3** |
+| ORM | Doctrine ORM **3.6** |
+| MB | **MariaDB 11.7** (MySQL protokoli) |
+| Auth | `lexik/jwt-authentication-bundle` (JWT + refresh token) + HEMIS OAuth2 |
+| CORS | `nelmio/cors-bundle` |
 | Migratsiya | `doctrine/doctrine-migrations-bundle` |
-| Test | PHPUnit 11 + `zenstruck/foundry` (fixture/factory) |
-| Statik tahlil | PHPStan (max level), PHP-CS-Fixer (PSR-12) |
-| Konteyner | Docker + Docker Compose |
+| Kod generatsiya | `symfony/maker-bundle` (dev) |
+| Konteyner | Docker + Docker Compose (`php`, `nginx`, `db`) |
+
+Keyin qo'shiladi (skeletda yo'q):
+
+| Statik tahlil | PHPStan (max level) |
+| Kod uslubi | PHP-CS-Fixer (PSR-12 + loyiha qoidalari) |
+| Test | PHPUnit 11 + `zenstruck/foundry` |
 
 ---
 
-## 3. Docker
+## 3. Docker va ishga tushirish
 
-Barcha ishlar Docker orqali bajariladi. Xost mashinada PHP/Composer
-o'rnatilishi shart emas.
+Barcha buyruqlar Docker orqali. Xost mashinada PHP kerak emas.
 
 ```
 docker/
-  php/            Dockerfile (php-fpm 8.3, kerakli extension'lar)
-  nginx/          nginx konfiguratsiyasi
-compose.yaml
+  php/        Dockerfile (php-fpm 8.5) + php.ini
+  nginx/      default.conf
+  mysql/db/   MariaDB volume (gitignore)
+docker-compose.yml
 ```
 
-Xizmatlar:
+`.env` dagi asosiy o'zgaruvchilar:
 
-- `php` — php-fpm, ilova kodi
-- `nginx` — 80-portda HTTP kirish
-- `database` — PostgreSQL, `pgdata` volume
-- `mailer` — dev uchun Mailpit
+| O'zgaruvchi | Qiymat | Izoh |
+|---|---|---|
+| `DOCKER_PROJECT_NAME` | `psychology_api` | konteyner prefiksi, DB nomi |
+| `DOCKER_NGINX_PORT` | `8508` | `http://localhost:8508/api` |
+| `DOCKER_DATABASE_PORT` | `3508` | tashqi MariaDB porti |
+| `DATABASE_URL` | `mysql://root:...@db:3306/psychology_api` | |
 
-Buyruqlar `Makefile` orqali qisqartiriladi (`make up`, `make sh`, `make migrate`,
-`make test`, `make cs`, `make stan`).
+Ishga tushirish:
+
+```bash
+docker compose up -d
+docker compose exec php composer install
+docker compose exec php bin/console ask:install          # bootstrap
+docker compose exec php bin/console ask:generate-jwt-keys # JWT kalitlari
+docker compose exec php bin/console doctrine:migrations:migrate
+```
+
+Kirish: `http://localhost:8508/api` (API Platform UI).
 
 ---
 
-## 4. Loyiha tuzilmasi
+## 4. Skeletdan tayyor kelgan narsalar
+
+Bularni **qayta yozmaymiz**, kengaytiramiz.
+
+### `src/Component/Core/`
+
+| Klass | Vazifasi |
+|---|---|
+| `AbstractManager` | Entity saqlash. `save(object $entity, bool $needToFlush = false)`. Yangi/eski entity'ga qarab `createdAt/By`, `updatedAt/By` maydonlarini avtomatik to'ldiradi (`*SettableInterface` bo'yicha). Yagona persist yo'li. |
+| `ParameterGetter` | `.env`/parametr o'qish. `get`, `getString`, `getInt`, `getBool`, `getArray`, `getFloat`. |
+| `HashValidator`, `SlugGenerator`, `Requester`, `MarkEntityAsDeleted` | Yordamchi xizmatlar. |
+| `Exceptions\ModelNotFoundException` | |
+
+### `src/Component/User/`
+
+| Klass | Vazifasi |
+|---|---|
+| `CurrentUser` | Joriy foydalanuvchi. `getUser(): User`, `isAuthed(): bool`, `getJwtUser(): JwtUserDto`. |
+| `UserFactory` | `User` yaratish (skeletda `create(email, password)` — biz `createFromHemis(...)` qo'shamiz). |
+| `UserManager extends AbstractManager` | `hashPassword(User, string)`. |
+| `TokensCreator` | JWT access + refresh token juftligi. |
+| `Dtos\` | `JwtUserDto`, `TokensDto`, `RefreshTokenDto`, `RefreshTokenRequestDto`. |
+| `Exceptions\AuthException` | |
+
+### `src/Controller/Base/`
+
+| Klass | Vazifasi |
+|---|---|
+| `AbstractController` | **Barcha kontrollerlar shundan meros oladi.** `response()`, `responseNormalized()`, `responseEmpty()`, `getDtoFromRequest()`, `validate()`, `getUser()`, `getJwtUser()`, `findEntityOrError()`, `throwNotFoundException()`. |
+| `Constants\ResponseFormat` | `JSONLD`, `JSON` konstantalari. |
+
+### `src/Controller/` (harakat-kontrollerlar)
+
+`UserAuthAction` (`POST users/auth`), `UserAuthByRefreshTokenAction`,
+`UserAboutMeAction` (`POST users/about_me`), `UserCreateAction`,
+`UserChangePasswordAction`, `UserIsUniqueEmailAction`, `DeleteAction`
+(yumshoq o'chirish — `deletedAt` qo'yadi).
+
+### `src/Controller/Subscribers/`
+
+`ReadExtension` (o'qish so'rovlariga umumiy filtr, masalan `deletedAt IS NULL`),
+`WriteSubscriber` (yozishda `Manager` chaqirish, audit).
+
+### `src/Entity/`
+
+- `User` — `id`, `email`, `password`, `roles[]`, audit + soft-delete. To'liq
+  API Platform CRUD + auth operatsiyalari. **Biz kengaytiramiz** (§10.3).
+- `Interfaces/` — `CreatedAtSettableInterface`, `CreatedBySettableInterface`,
+  `UpdatedAtSettableInterface`, `UpdatedBySettableInterface`,
+  `DeletedAtSettableInterface`, `DeletedBySettableInterface`.
+- `Traits/` — mos accessor traitlar
+  (`CreatedAtAccessorsTrait`, `UpdatedAtAndByAccessorsTrait`,
+  `DeletedAtAndByAccessorsTrait`, `CreatedUpdatedDeletedAtAndByTrait`, ...).
+
+**Yangi entity qoidasi:** audit kerak bo'lsa mos `*SettableInterface` +
+`*AccessorsTrait` ulanadi. Yumshoq o'chirish kerak bo'lsa
+`DeletedAtSettableInterface` + `DeletedAtAndByAccessorsTrait` + `Delete`
+operatsiyasida `controller: DeleteAction::class`.
+
+### `src/Command/` — `ask:*`
+
+`ask:install`, `ask:generate-jwt-keys`, `ask:deploy`,
+`ask:roles:add-to-user`, `ask:roles:delete-from-user`, `ask:roles:show-user-roles`.
+Yangi buyruqlar shu `ask:` prefiksi + `Ask` klass prefiksi bilan.
+
+---
+
+## 5. Loyiha tuzilmasi (biz to'ldiradigan)
 
 ```
 src/
-  ApiResource/         API Platform DTO-resurslari (Entity'dan tashqari)
-  Command/             Konsol buyruqlari
-  Component/           BIZNES LOGIKA — barcha logika shu yerda
-    User/
-      UserFactory.php
-      UserManager.php
-      UserProvider.php
-      ...
-    Assessment/
-      TemperamentScorer.php
-      PsychogeometricScorer.php
-      AttemptFactory.php
-      AttemptManager.php
-      ...
+  ApiResource/         API Platform DTO-resurslari (Entity'dan tashqari input/output)
+  Command/             Ask*Command
+  Component/            BIZNES LOGIKA — barcha logika shu yerda
+    Core/              (skeletdan)
+    User/              (skeletdan) + HEMIS auth, provider
+    Organization/       Faculty / StudyGroup / Student
+    Assessment/         Quiz, Question, Attempt, Scorer (Strategy)
+    Assignment/
     Appeal/
     Passport/
     Appointment/
     Notification/
-    Organization/       Faculty / Group / Student
-  Controller/          Kontrollerlar (barchasi AbstractController meros oladi)
-  Entity/              Doctrine entity'lari
-  Enum/                Backed enum'lar (Role, InstrumentType, ...)
-  EventSubscriber/
-  Repository/          Doctrine repozitoriylari
-  Security/            Voter, autentifikator, token
-  Service/             Infratuzilma xizmatlari (ParameterGetter, ...)
+  Controller/
+    Base/              (skeletdan)
+    Subscribers/       (skeletdan)
+    <Xatti-harakat>Action.php
+  Entity/
+  Enum/                backed enum'lar
+  Repository/          faqat SELECT
+  Security/            Voter, HEMIS autentifikator
   State/               API Platform State Provider / Processor
-docs/                  Har bir entity va muhim jarayon uchun .md hujjat
-config/
+docs/                  har bir entity va muhim jarayon uchun .md
 migrations/
-tests/
+tests/                 (keyin)
 ```
 
-**Qoida:** biznes logikaga oid har qanday klass `src/Component/<Domen>/` ichida
-bo'ladi. `Controller`, `State`, `EventSubscriber` faqat `Component` dagi
-xizmatlarni chaqiradi, o'zida logika saqlamaydi.
+**Qoida:** biznes logika faqat `src/Component/<Domen>/` da. `Controller`,
+`State`, `EventSubscriber`, `Voter` faqat `Component` xizmatlarini chaqiradi.
 
 ---
 
-## 5. Arxitektura qatlamlari
+## 6. Arxitektura qatlamlari
 
 ```
 HTTP so'rov
    │
    ▼
-Controller / API Platform operatsiyasi
-   │   (validatsiya, avtorizatsiya, DTO -> Component chaqiruvi)
+API Platform operatsiyasi  yoki  <Action>Controller (AbstractController)
+   │   avtorizatsiya (Voter), validatsiya, DTO
    ▼
-State Processor / Provider  ──►  Component (Manager, Factory, Scorer, ...)
-   │                                   │
-   │                                   ▼
-   │                              Repository (faqat o'qish so'rovlari)
-   ▼                                   │
-Entity  ◄──────────────────────────────┘
+State Processor/Provider  ──►  Component (Factory, Manager, Scorer, Provider)
+   │                                 │
+   │                                 ▼
+   │                            Repository (faqat o'qish)
+   ▼                                 │
+Entity  ◄────────────────────────────┘
    │
    ▼
-Doctrine (EntityNameManager -> AbstractManager -> EntityManager)
+AbstractManager::save()  ──►  Doctrine EntityManager
 ```
 
-- **Controller** — HTTP bilan ishlaydi, javob shaklini belgilaydi, logikani
-  `Component` ga topshiradi.
-- **Component** — biznes qoidalari. `Factory` (yaratish), `Manager` (saqlash),
-  `Scorer`/`Provider`/`Calculator` (hisob-kitob).
-- **Repository** — faqat `SELECT` so'rovlari. Ichida yozish yo'q.
-- **Entity** — anemik emas: o'ziga tegishli invariantlarni ushlab turadi, lekin
-  tashqi bog'liqliklarsiz.
-
----
-
-## 6. Asosiy abstraksiyalar
-
-### 6.1 `App\Controller\AbstractController`
-
-Barcha kontrollerlar bizning `AbstractController` dan meros oladi (Symfony'ning
-o'zinikidan emas). Umumiy yordamchi metodlar shu yerda: joriy foydalanuvchini
-olish, JSON javob qaytarish, DTO ni deserializatsiya qilish va h.k.
-
-### 6.2 `App\Component\AbstractManager`
-
-Entity saqlashning yagona yo'li. `persist`, `flush`, `remove`, `refresh` kabi
-metodlarni beradi.
-
-Har bir entity uchun **bo'sh** `EntityNameManager` klassi yaratiladi. U faqat
-`@method` phpDoc bilan tiplashtiriladi:
-
-```php
-namespace App\Component\User;
-
-use App\Component\AbstractManager;
-use App\Entity\User;
-
-/**
- * @method void save(User $user, bool $flush = true)
- * @method void remove(User $user, bool $flush = true)
- * @method User|null find(int $id)
- */
-final class UserManager extends AbstractManager
-{
-}
-```
-
-`AbstractManager` ichida entity klassi konstruktor yoki abstrakt metod orqali
-aniqlanadi.
-
-### 6.3 `App\Component\<Domen>\<Entity>Factory`
-
-Entity **hech qachon** `new Entity()` bilan yaratilmaydi. Har doim Factory:
-
-```php
-namespace App\Component\User;
-
-use App\Entity\User;
-use App\Enum\Role;
-
-final class UserFactory
-{
-    public function createFromHemis(HemisProfile $profile, Role $role): User
-    {
-        $user = new User($profile->getHemisId(), $profile->getFullName(), $role);
-        $user->setStudyLanguage($profile->getStudyLanguage());
-
-        return $user;
-    }
-}
-```
-
-Testlarda fixture uchun `zenstruck/foundry` factory'lari alohida
-(`tests/Factory/`), lekin **domen logikasi** faqat `src/Component` dagi
-factory'lardan foydalanadi.
-
-### 6.4 `App\Service\ParameterGetter`
-
-`.env` yoki `services.yaml` dagi parametrlarni **faqat** shu klass orqali olamiz.
-Kodda `$_ENV`, `getenv()`, `%kernel.project_dir%` to'g'ridan-to'g'ri ishlatilmaydi.
-
-```php
-final class ParameterGetter
-{
-    public function __construct(private readonly ParameterBagInterface $bag)
-    {
-    }
-
-    public function getHemisOauthUrl(): string
-    {
-        return $this->getString('hemis.oauth_url');
-    }
-}
-```
+- **Controller / operatsiya** — HTTP bilan ishlaydi, javob shaklini belgilaydi.
+- **Component** — biznes qoidalari. `*Factory` (yaratish), `*Manager` (saqlash),
+  `*Scorer` / `*Provider` / `*Calculator` (hisob-kitob).
+- **Repository** — faqat `SELECT`. Yozish yo'q.
+- **Entity** — o'z invariantlarini ushlaydi, tashqi bog'liqliksiz.
 
 ---
 
 ## 7. PHP uchun qat'iy qoidalar
 
-Bu qoidalar **majburiy**. PR CI'da PHP-CS-Fixer + PHPStan tekshiruvidan o'tadi.
+**Majburiy.** CI'da PHP-CS-Fixer + PHPStan tekshiruvidan o'tadi.
 
-1. **PSR-12** standartiga qat'iy amal qilamiz.
+1. **PSR-12** ga qat'iy amal qilamiz.
 
 2. Har bir fayl **bitta bo'sh qator** bilan tugaydi.
 
-3. Entity obyektlari **har doim Factory** orqali yaratiladi (`UserFactory`).
+3. Entity obyektlari **har doim `*Factory`** orqali yaratiladi
+   (`new User()` faqat Factory ichida).
 
-4. Biznes logikaga oid barcha fayllar **`src/Component`** papkasida
-   (`src/Component/User/UserFactory.php`, `src/Component/User/UserManager.php`).
+4. Biznes logikaga oid barcha fayllar **`src/Component/<Domen>/`** da
+   (`src/Component/User/UserFactory.php`, `.../UserManager.php`).
 
-5. Entity saqlash uchun **`EntityNameManager`** ishlatiladi. U `AbstractManager`
-   dan meros oladi va faqat `@method` phpDoc yozilgan bo'sh klass bo'ladi.
+5. Entity saqlash — **`EntityNameManager extends AbstractManager`**. Ko'p
+   hollarda faqat `@method` phpDoc yozilgan bo'sh klass:
 
-6. Barcha funksiya va klasslar **`use` orqali import** qilinadi. Kodda
-   `\SomeClass()` ko'rinishidagi yozuvlar bo'lmaydi.
+   ```php
+   namespace App\Component\Assessment;
 
-7. Controller bizning **`App\Controller\AbstractController`** dan meros oladi.
+   use App\Component\Core\AbstractManager;
+   use App\Entity\Attempt;
 
-8. `.env` o'zgaruvchilari **`ParameterGetter`** orqali olinadi.
+   /**
+    * @method void save(Attempt $entity, bool $needToFlush = false)
+    */
+   class AttemptManager extends AbstractManager
+   {
+   }
+   ```
+
+6. Barcha funksiya/klass **`use` orqali import** qilinadi. Kodda `\SomeClass()`
+   yozuvlari bo'lmaydi.
+
+7. Controller bizning **`App\Controller\Base\AbstractController`** dan meros
+   oladi (Symfony'nikidan emas).
+
+8. `.env` o'zgaruvchilari **`App\Component\Core\ParameterGetter`** orqali
+   olinadi. `$_ENV`, `getenv()`, `%env()%` kontroller/servisda ishlatilmaydi.
 
 9. **Metod nomlari — har doim fe'l.**
    - Boolean qaytaradigan metod `is` yoki `has` bilan boshlanadi.
    - `has` — obyekt ichida element mavjudligini tekshiradi: `hasChild()`.
-   - **Faqat entity obyektlarida** `getIs...` / `getHas...` bilan boshlanadigan
-     nomlarga ruxsat (aks holda API Platform bu qiymatlarni frontendga
-     uzatmaydi): `getIsActive()`.
+   - **Faqat entity obyektlarida** `getIs...` / `getHas...` ga ruxsat, aks holda
+     API Platform bu qiymatni frontendga uzatmaydi: `getIsActive()`.
 
-10. **Komment o'rniga private metod.** Kod bo'lagini tushuntirish uchun komment
-    yozish o'rniga — shu bo'lakni nomi o'zini tushuntiruvchi `private` metodga
-    ajratamiz. Kod kommentlarsiz tushunarli bo'lishi kerak.
+10. **Komment o'rniga private metod.** Kod bo'lagini nomi o'zini tushuntiruvchi
+    `private` metodga ajratamiz; kod kommentlarsiz tushunarli bo'lishi kerak.
 
-11. **phpDoc** — faqat kerakli joyda. Masalan, PHP tili metod qanday turdagi
-    kolleksiya/massiv qaytarishini to'liq ifodalay olmasa (`list<User>`,
-    `array<string, Result>` va h.k.).
+11. **phpDoc** — faqat zarur joyda (masalan `list<Attempt>`,
+    `Collection<int, Question>` kabi PHP tili to'liq ifodalay olmaydigan tiplar).
 
-12. **Assotsiativ massivlardan foydalanilmaydi.** Massiv o'rniga obyekt (DTO,
-    `readonly class`, `ArrayCollection<Entity>`).
+12. **Assotsiativ massivlar ishlatilmaydi.** Massiv o'rniga obyekt: `readonly`
+    DTO, Value Object yoki `Collection<Entity>`.
 
 13. **`if` ichida faqat boolean.**
-    - `if ($user)` yoki `if (!$company)` — **noto'g'ri**.
-    - `null` tekshiruvi: `if ($user === null)`, `if ($company !== null)`.
+    - `if ($user)` / `if (!$company)` — **taqiqlanadi**.
+    - `null` tekshiruvi: `if ($user === null)`, `if ($group !== null)`.
     - O'zgaruvchi tipi boolean bo'lsa shartsiz: `if ($isActive)`.
     - Metod faqat boolean qaytarsa `=== true`/`=== false` shart emas:
-      `if ($company->getIsActive())`.
+      `if ($category->getIsActive())`.
 
-14. **Har bir entity uchun `/docs/<fayl_nomi>.md`** hujjat fayli yaratiladi.
+14. **Har bir entity uchun `/docs/<fayl_nomi>.md`** hujjati bo'ladi.
 
 15. Backend logikasi yoki entity xususiyati o'zgarsa — `/docs` dagi mos `.md`
-    fayl **majburiy** yangilanadi (avval hujjat, keyin kod).
+    fayl **majburiy** yangilanadi (**avval hujjat, keyin kod**).
 
-16. **Bo'sh qatorlar:**
-    - `{`, `for`, `if`, `switch`, `foreach`, metod, class va umuman `{}`
-      ishlatadigan blok yoki bir necha qatorli massiv — o'zidan oldin va keyin
-      **bitta bo'sh qator** bilan ajratiladi.
-    - **Ammo:** `{` dan **keyin** hech qachon bo'sh qator bo'lmaydi; `}` dan
-      **oldin** ham bo'sh qator bo'lmaydi.
+16. **Bo'sh qatorlar.** `{}` ishlatadigan har qanday blok (`if`, `for`,
+    `foreach`, `switch`, metod, class) yoki bir necha qatorli massiv — o'zidan
+    oldin va keyin **bitta bo'sh qator**. **Ammo:** `{` dan **keyin** hech
+    qachon bo'sh qator yo'q; `}` dan **oldin** ham yo'q.
 
 **Noto'g'ri:**
 
@@ -324,103 +330,120 @@ private function findBestSplitPosition(string $content): int
 
 ## 8. Yumshoq qoidalar
 
-- Metodlar imkon qadar **10 qatordan oshmasin**. Katta metod → bir nechta kichik
-  `private` metod.
-- **SOLID** tamoyillariga amal qilinadi.
-- Imkon bor joyda mashhur loyihalash patternlari (Factory, Strategy, State,
-  Value Object, Specification, ...).
+- Metodlar imkon qadar **10 qatordan oshmasin** → kichik `private` metodlar.
+- **SOLID** tamoyillari.
+- Mashhur patternlar (Factory, Strategy, State, Value Object, Specification).
 - Kolleksiya tiplari: `Doctrine\Common\Collections\Collection<int, Entity>`.
-- `readonly` — DTO va Value Object'lar uchun standart.
-- `final` — sinf boshqa sinfga meros berish uchun ataylab ochilmagan bo'lsa,
-  `final` qilinadi.
-- Enum'lar — `enum Role: string` (backed).
+- `readonly` — DTO/Value Object uchun standart.
+- `final` — meros berish ataylab ochilmagan bo'lsa.
+- Enum'lar — backed: `enum InstrumentType: string`.
 
 ---
 
-## 9. Hujjatlashtirish qoidalari (`/docs`)
+## 9. Hujjatlashtirish (`/docs`)
 
-- Har bir entity: `docs/<entity>.md` — maydonlar, aloqalar, invariantlar,
-  API operatsiyalari, ruxsatlar.
-- Har bir muhim jarayon: `docs/<jarayon>.md` — masalan `docs/attempt-scoring.md`,
-  `docs/hemis-auth.md`, `docs/notifications.md`.
-- `docs/README.md` — barcha hujjatlar indeksi.
+- Har bir entity: `docs/<entity>.md` — maydonlar, aloqalar, invariantlar, API
+  operatsiyalari, ruxsatlar.
+- Har bir muhim jarayon: `docs/<jarayon>.md` (masalan `docs/attempt-scoring.md`,
+  `docs/hemis-auth.md`, `docs/notifications.md`).
+- `docs/README.md` — indeks (checklist).
 - O'zgarish tartibi: **`docs` → migratsiya → kod → test**.
 
 ---
 
 ## 10. Domen modeli
 
-Enum'lar:
+### 10.1 Enum'lar (`src/Enum/`)
 
-- `Role`: `student`, `psychologist`, `admin`
-- `StudyLanguage`: `uz`, `ru`
-- `InstrumentType`: `FREQUENCY_BASED` (temperament), `RANKING_BASED`
-  (psixogeometrik), `SCORE_RANGE_BASED` (nevrasteniya)
-- `QuestionType`: `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`,
+- `RoleEnum: string` — `ROLE_STUDENT`, `ROLE_PSYCHOLOGIST`, `ROLE_ADMIN`
+  (Symfony `roles[]` bilan mos).
+- `StudyLanguage: string` — `uz`, `ru`
+- `InstrumentType: string` — `FREQUENCY_BASED`, `RANKING_BASED`,
+  `SCORE_RANGE_BASED`
+- `QuestionType: string` — `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`,
   `SINGLE_CHOICE_IMAGE`, `WRITING`
-- `AttemptStatus`: `not_started`, `in_progress`, `submitted`, `reviewed`
-- `AppointmentStatus`: `free`, `booked`, `cancelled`
-- `AppealMode`: `named`, `anonymous`
-- `AppealStatus`: `open`, `answered`
-- `AppealTopic`: `question`, `appointment`, `stress`, `other`
-- `FamilyStatus`: `married`, `single`
-- `LivingEnvironment`: `calm`, `problematic`
+- `AttemptStatus: string` — `not_started`, `in_progress`, `submitted`, `reviewed`
+- `AppointmentStatus: string` — `free`, `booked`, `cancelled`
+- `AppealMode: string` — `named`, `anonymous`
+- `AppealStatus: string` — `open`, `answered`
+- `AppealTopic: string` — `question`, `appointment`, `stress`, `other`
+- `FamilyStatus: string` — `married`, `single`
+- `LivingEnvironment: string` — `calm`, `problematic`
 
-### 10.1 Entity'lar ro'yxati (har biri uchun `docs/*.md`)
+### 10.2 Entity'lar (har biri uchun `docs/*.md`)
 
 | Entity | Vazifasi | Hujjat |
 |---|---|---|
-| `User` | Talaba / psixolog / admin. HEMIS profili + rol. | `docs/user.md` |
+| `User` | Talaba / psixolog / admin. HEMIS profili + rollar. | `docs/user.md` |
 | `Faculty` | Fakultet (HEMIS'dan). | `docs/faculty.md` |
 | `StudyGroup` | Guruh, fakultetga tegishli, ta'lim tili. | `docs/study-group.md` |
 | `Category` | Metodika kategoriyasi + `InstrumentType`. | `docs/category.md` |
-| `Quiz` | Kategoriya ichidagi test (savollar to'plami). | `docs/quiz.md` |
+| `Quiz` | Kategoriya ichidagi test. `studyLanguage` (uz/ru variantlar). | `docs/quiz.md` |
 | `Question` | Savol + `QuestionType` + tartib. | `docs/question.md` |
-| `AnswerOption` | Javob varianti (matn/rasm, ball, kategoriya kaliti). | `docs/answer-option.md` |
+| `AnswerOption` | Javob varianti (matn/rasm, ball, `categoryKey`). | `docs/answer-option.md` |
+| `AssessmentInterpretation` | Natija matni (temperament tipi / figura tavsifi), uz/ru. | `docs/assessment-interpretation.md` |
 | `Assignment` | Kategoriyani fakultet/guruhga biriktirish + muddat. | `docs/assignment.md` |
 | `Attempt` | Talabaning bitta metodika bo'yicha urinishi. | `docs/attempt.md` |
 | `AttemptAnswer` | Urinish ichidagi bitta javob. | `docs/attempt-answer.md` |
-| `AssessmentResult` | Hisoblab chiqilgan natija (label, tavsif, breakdown). | `docs/assessment-result.md` |
-| `AppointmentSlot` | Psixolog qabul slot'i (bo'sh/band/bekor). | `docs/appointment-slot.md` |
+| `AssessmentResult` | Hisoblangan natija (`label`, `description`, `breakdown`). | `docs/assessment-result.md` |
+| `AppointmentSlot` | Psixolog qabul slot'i. | `docs/appointment-slot.md` |
 | `Appeal` | Talaba → psixolog murojaati + javob. | `docs/appeal.md` |
 | `StudentPassport` | Ijtimoiy-psixologik pasport so'rovnomasi. | `docs/student-passport.md` |
 | `Notification` | Foydalanuvchiga bildirishnoma. | `docs/notification.md` |
 
-### 10.2 Aloqalar (qisqacha)
+### 10.3 `User` kengaytmasi
+
+Skeletdagi `User` ga qo'shiladi:
+
+- `hemisId: ?string` (unique) — HEMIS identifikatori.
+- `fullName: string`
+- `studyLanguage: StudyLanguage` (talaba uchun)
+- `image: ?string`
+- `getIsActive(): bool`
+- `studyGroup: ?StudyGroup` (talaba)
+- `getUserIdentifier()` — `hemisId ?? email ?? id` tartibida.
+- `roles[]` da `RoleEnum` qiymatlari.
+- Yordamchi: `getPrimaryRole(): RoleEnum`.
+
+### 10.4 Aloqalar
 
 ```
 Faculty 1───* StudyGroup 1───* User(student)
 Category 1───* Quiz 1───* Question 1───* AnswerOption
+Category 1───* AssessmentInterpretation
 Category 1───* Assignment *───1 StudyGroup
 Assignment 1───* Attempt *───1 User(student)
 Attempt 1───* AttemptAnswer *───1 Question
 Attempt 1───1 AssessmentResult
 User(psychologist) 1───* AppointmentSlot *───0..1 User(student)
-User(student) 1───* Appeal *───0..1 User(psychologist)  (javob bergan)
+User(student) 1───* Appeal *───0..1 User(psychologist, javob bergan)
 User(student) 1───1 StudentPassport
 User 1───* Notification
 ```
 
-### 10.3 Ballash (scoring)
+### 10.5 Ballash — `src/Component/Assessment/`
 
-`src/Component/Assessment/` ichida `InstrumentType` bo'yicha strategiya:
+`InstrumentType` bo'yicha **Strategy**: `ScorerInterface` +
+`TemperamentStatementScorer`, `TemperamentChoiceScorer`,
+`PsychogeometricScorer`, `ScoreRangeScorer`. `ScorerResolver` mos strategiyani
+tanlaydi.
 
-- **`FREQUENCY_BASED` (temperament)** — `AnswerOption.categoryKey` bo'yicha
-  "Ha" javoblar sanaladi; eng ko'p ball to'plagan kategoriya natija bo'ladi.
-  uz — 80 ta bayonot ("Ha/Yo'q"); ru guruhlar uchun 14 ta tanlovli savol
-  (alohida `Quiz`, `studyLanguage=ru`).
-- **`RANKING_BASED` (psixogeometrik)** — talaba bitta figurani tanlaydi; o'sha
-  figura natija.
+- **`FREQUENCY_BASED` (temperament)** — `AnswerOption.categoryKey` bo'yicha "Ha"
+  javoblar sanaladi; eng ko'p ball to'plagan kategoriya natija.
+  - uz: 80 bayonot (`YES_NO`).
+  - ru guruhlar: 14 tanlovli savol — alohida `Quiz`, `studyLanguage=ru`.
+- **`RANKING_BASED` (psixogeometrik)** — talaba **bitta figurani** tanlaydi;
+  o'sha figura natija.
 - **`SCORE_RANGE_BASED` (nevrasteniya)** — ball yig'indisi → oraliq → xulosa
-  matni (`ScoreRange` konfiguratsiyasi).
+  matni.
 
-Natija matnlari (temperament tiplari, geometrik figuralar tavsifi) — bazada
-`AssessmentInterpretation` (yoki `Category` bilan bog'liq konfiguratsiya),
-`studyLanguage` bo'yicha uz/ru.
+Natija matnlari `AssessmentInterpretation` dan, `studyLanguage` bo'yicha.
 
-Ballash **State Processor** emas, `AttemptManager::submit()` ichida `Scorer`
-chaqiriladi — API'siz (masalan, migratsiyadan qayta hisoblash) ham ishlashi
-uchun.
+Ballash **`AttemptManager::submit()`** ichida `ScorerResolver` orqali chaqiriladi
+(State Processor emas — migratsiyadan qayta hisoblash ham ishlashi uchun).
+
+Manba ma'lumot: `../psychology-front/src/data/assessments/*` va
+`src/utils/scoring.ts`.
 
 ---
 
@@ -428,87 +451,92 @@ uchun.
 
 ### 11.1 Kirish yo'llari
 
-1. **HEMIS OAuth2** (`student.uzswlu.uz`) — asosiy yo'l. Rol HEMIS profilidan
-   aniqlanadi. Callback → `User` topiladi/yaratiladi (`UserFactory`) → JWT
-   beriladi. Batafsil: `docs/hemis-auth.md`.
-2. **Login/parol** — xodimlar (psixolog/admin) va demo hisoblar uchun.
-   `password_hash` bazada saqlanadi.
+1. **HEMIS OAuth2** (`HEMIS_OAUTH_URL`, default `student.uzswlu.uz`) — asosiy
+   yo'l. `GET /api/auth/hemis` → HEMIS'ga yo'naltirish;
+   `GET /api/auth/hemis/callback` → profil olinadi, `User` topiladi/yaratiladi
+   (`UserFactory::createFromHemis`), `TokensCreator` orqali JWT beriladi. Rol
+   HEMIS profilidan. Batafsil: `docs/hemis-auth.md`.
+2. **Login/parol** — xodimlar (psixolog/admin) va demo. Skeletdagi
+   `POST users/auth` + `users/auth/refreshToken`.
 
-Chiqishda JWT + refresh token. Frontend `Authorization: Bearer` yuboradi.
+Frontend `Authorization: Bearer <access>` yuboradi; muddati tugaganda
+`refreshToken` bilan yangilaydi (`TOKEN_ACCESS_EXPIRATION_PERIOD=P1D`,
+`TOKEN_REFRESH_EXPIRATION_PERIOD=P2M`).
 
-### 11.2 Ruxsatlar (Voter'lar)
+### 11.2 Ruxsatlar (Voter'lar, `src/Security/`)
 
-- `student` — faqat o'ziga biriktirilgan `Assignment`, o'z `Attempt`,
-  o'z `AssessmentResult`, o'z `Appeal` va `StudentPassport`.
-- `psychologist` — barcha natijalar, murojaatlar, kalendar; talaba/guruh
+- **student** — faqat o'ziga biriktirilgan `Assignment`, o'z `Attempt` /
+  `AssessmentResult` / `Appeal` / `StudentPassport`.
+- **psychologist** — barcha natijalar, murojaatlar, kalendar; talaba/guruh
   yaratmaydi.
-- `admin` — hammasi, shu jumladan `Faculty` / `StudyGroup` / `User(student)`
-  yaratish (test qilish uchun) va "talaba sifatida ko'rish" (impersonatsiya
-  token'i).
+- **admin** — hammasi; `Faculty` / `StudyGroup` / `User(student)` yaratish (test
+  uchun) va **"talaba sifatida ko'rish"** (impersonatsiya token'i, cheklangan
+  muddatli).
 
-Anonim murojaatda `Appeal.mode = anonymous` bo'lsa — API javobida talaba ismi
-va guruhi **berilmaydi** (`getIsAnonymous() === true` da serializatsiya
-guruhi cheklanadi), lekin `student` bog'lanishi bazada saqlanadi (javobni
-yetkazish uchun).
+Anonim murojaat (`Appeal.getIsAnonymous() === true`) — API javobida talaba ismi
+va guruhi berilmaydi (serializatsiya guruhi cheklanadi), lekin `student`
+bog'lanishi bazada saqlanadi (javobni yetkazish uchun).
 
 ---
 
 ## 12. API dizayni
 
-- API Platform resurslari — asosan `#[ApiResource]` Entity'lar; murakkab
-  kirish/chiqish shakllari uchun `src/ApiResource/` dagi DTO + State
-  Provider/Processor.
+- Asosan `#[ApiResource]` Entity'lar; murakkab shakllar uchun `src/ApiResource/`
+  DTO + State Provider/Processor.
 - Serializatsiya guruhlari: `<entity>:read`, `<entity>:write`,
   `<entity>:read:staff` (xodimga ko'proq maydon).
-- Barcha ro'yxatlar sahifalanadi (`GET` — `page`, `itemsPerPage`).
-- Filtr: `SearchFilter`, `OrderFilter`, kerak bo'lsa maxsus filtrlar.
-- Frontend kutayotgan asosiy oqimlar:
-  - `GET /api/assignments` (talabaga biriktirilganlar)
-  - `GET /api/quizzes/{id}` (savollari bilan)
-  - `POST /api/attempts` (boshlash) / `PATCH /api/attempts/{id}` (javob/yakunlash)
-  - `GET /api/attempts?student=me` , `GET /api/assessment_results?student=me`
-  - `GET /api/faculties` , `GET /api/study_groups?faculty=` , `GET /api/students?group=`
-  - `GET /api/admin/group_results?group=&instrument=` (jadval + eksport uchun)
-  - `GET /api/admin/group_passports?group=` (ijtimoiy-psixologik pasport eksporti)
-  - `GET/POST /api/appointment_slots`
-  - `GET/POST /api/appeals` , `POST /api/appeals/{id}/reply`
-  - `GET/PUT /api/student_passport`
-  - `GET /api/notifications` , `POST /api/notifications/mark_read`
+- Barcha ro'yxatlar sahifalanadi.
+- Filtrlar: `SearchFilter`, `OrderFilter` + kerak bo'lsa maxsus.
+- Yumshoq o'chirish: `Delete` operatsiyasi `DeleteAction` bilan; `ReadExtension`
+  `deletedAt IS NULL` filtrini qo'shadi.
 
-Har bir endpoint aniq shakli — tegishli `docs/*.md` da.
+Frontend kutayotgan asosiy oqimlar (aniq shakli — mos `docs/*.md`):
+
+- `GET /api/assignments` (talabaga biriktirilganlar)
+- `GET /api/quizzes/{id}` (savollari bilan)
+- `POST /api/attempts` (boshlash) · `PATCH /api/attempts/{id}` (javob / yakunlash)
+- `GET /api/attempts?student=me` · `GET /api/assessment_results?student=me`
+- `GET /api/faculties` · `GET /api/study_groups?faculty=` · `GET /api/students?group=`
+- `GET /api/admin/group_results?group=&instrument=` (jadval + eksport)
+- `GET /api/admin/group_passports?group=` (ijtimoiy-psixologik pasport eksporti)
+- `GET/POST /api/appointment_slots`
+- `GET/POST /api/appeals` · `POST /api/appeals/{id}/reply`
+- `GET/PUT /api/student_passport`
+- `GET /api/notifications` · `POST /api/notifications/mark_read`
 
 ---
 
-## 13. Sifat va test
+## 13. Sifat va test (keyin qo'shiladi)
 
-- `make cs` — PHP-CS-Fixer (PSR-12 + loyiha qoidalari), CI'da `--dry-run`.
-- `make stan` — PHPStan max level, baseline yo'q (yangi kod toza).
+- `make cs` / `composer cs` — PHP-CS-Fixer, CI'da `--dry-run`.
+- `make stan` — PHPStan max level, baseline yo'q.
 - `make test` — PHPUnit; har bir `Component` xizmati uchun unit test, muhim
-  oqimlar uchun API (functional) test.
-- Fixture — `zenstruck/foundry`, `tests/Factory/`.
-- Har bir yangi entity/endpoint bilan birga test **va** `docs/*.md` keladi.
+  oqimlar uchun API (functional) test. Fixture — `zenstruck/foundry`.
+- Har yangi entity/endpoint bilan test **va** `docs/*.md` keladi.
 
 ---
 
 ## 14. Frontend bilan integratsiya
 
-`../psychology-front` hozircha `localStorage`'dagi mock ma'lumot bilan ishlaydi
-(`src/services/*`, `src/stores/*`). Backend tayyor bo'lgach, o'sha service
-qatlami `axios` bilan shu API'ga ulanadi — komponentlar o'zgarmaydi.
+`../psychology-front/src/services/*` hozircha `localStorage` mock. Backend tayyor
+bo'lgach o'sha service qatlami `axios` bilan shu API'ga ulanadi — Vue
+komponentlari o'zgarmaydi.
 
-`psychology-front/src/types/domain.ts` va shu loyihaning
-`src/data/assessments/*` fayllari — domen shakllari bo'yicha manba sifatida
-qaraladi (ballash qoidalari, temperament bayonotlari, figura tavsiflari).
+Domen shakllari bo'yicha manba: `psychology-front/src/types/domain.ts`,
+`psychology-front/src/data/assessments/*`, `psychology-front/src/utils/scoring.ts`.
 
 ---
 
 ## 15. Keyingi qadamlar
 
-1. Docker skeleti (`compose.yaml`, `docker/`, `Makefile`).
-2. Symfony + API Platform o'rnatish, `AbstractController`, `AbstractManager`,
-   `ParameterGetter` skeletlari.
-3. `docs/` — birinchi navbatda `user.md`, `faculty.md`, `study-group.md`.
-4. Migratsiya + entity'lar (10.1 tartibida).
-5. HEMIS auth (`docs/hemis-auth.md` → kod).
-6. Assessment oqimi (assignment → attempt → scoring → result).
-7. Appeal, notification, passport, appointment.
+1. `docker compose up` + `composer install` + `ask:install` + JWT kalitlari —
+   ishlayotganini tekshirish.
+2. PHPStan + PHP-CS-Fixer + PHPUnit qo'shish, `Makefile`.
+3. `src/Enum/` — barcha enum'lar.
+4. `docs/` — `user.md`, `faculty.md`, `study-group.md` (avval hujjat).
+5. `User` kengaytmasi + `Faculty` + `StudyGroup` + migratsiya.
+6. HEMIS auth (`docs/hemis-auth.md` → `src/Security/` + `src/Component/User/`).
+7. Assessment domeni: `Category` → `Quiz` → `Question` → `AnswerOption` →
+   `Assignment` → `Attempt` → ballash → `AssessmentResult`.
+8. `Appeal`, `Notification`, `StudentPassport`, `AppointmentSlot`.
+9. `psychology-front` service qatlamini API'ga ulash.
