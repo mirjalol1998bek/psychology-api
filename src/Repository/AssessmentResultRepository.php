@@ -19,6 +19,24 @@ class AssessmentResultRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<array{studentId: int, algo: string, resultKey: string}>
+     */
+    public function facultyBreakdown(int $facultyId): array
+    {
+        return $this->createQueryBuilder('r')
+            ->select('s.id AS studentId', 'c.instrumentType AS algo', 'r.resultKey AS resultKey')
+            ->join('r.attempt', 'a')
+            ->join('a.student', 's')
+            ->join('s.studyGroup', 'g')
+            ->join('a.quiz', 'q')
+            ->join('q.category', 'c')
+            ->andWhere('g.faculty = :faculty')
+            ->setParameter('faculty', $facultyId)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /**
      * @return list<AssessmentResult>
      */
     public function findByGroupAndCategory(int $studyGroupId, int $categoryId): array

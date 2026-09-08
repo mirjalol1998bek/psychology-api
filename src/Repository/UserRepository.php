@@ -51,6 +51,18 @@ class UserRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function countStudentsByFaculty(int $facultyId): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->join('u.studyGroup', 'g')
+            ->andWhere('g.faculty = :faculty')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('faculty', $facultyId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     // /**
     //  * @return User[] Returns an array of User objects
     //  */
