@@ -20,6 +20,11 @@ Quiz ichidagi bitta savol.
 |---|---|
 | `GET /api/questions`, `.../{id}` | auth |
 | `POST`, `PATCH` | `ROLE_PSYCHOLOGIST` — variantlar bilan birga (`question:write`) |
-| `DELETE` | `ROLE_ADMIN` |
+| `DELETE` | `ROLE_PSYCHOLOGIST` — testni tahrirlash uchun |
 
 Filtr: `quiz`.
+
+**Test tahriri:** frontend `CreateTestView` tahrir rejimida eski savollarni
+`DELETE` qilib yangilarini `POST` qiladi. Talaba allaqachon javob bergan
+savol o'chirilsa — `attempt_answer` va `attempt_answer_option` yozuvlari
+`ON DELETE CASCADE` bilan tozalanadi (Version20260909…).

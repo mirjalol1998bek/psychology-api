@@ -26,7 +26,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(),
         new Post(security: "is_granted('ROLE_PSYCHOLOGIST')"),
         new Patch(security: "is_granted('ROLE_PSYCHOLOGIST')"),
-        new Delete(security: "is_granted('ROLE_ADMIN')"),
+        new Delete(security: "is_granted('ROLE_PSYCHOLOGIST')"),
     ],
     normalizationContext: ['groups' => ['question:read', 'quiz:read:full']],
     denormalizationContext: ['groups' => ['question:write']],

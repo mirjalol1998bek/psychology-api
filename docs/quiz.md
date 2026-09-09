@@ -25,3 +25,7 @@ Kategoriya ichidagi test — bitta til varianti.
 | `DELETE` | `ROLE_ADMIN` |
 
 `QuizProvider::forCategoryAndLanguage()` — talaba tili bo'yicha, yo'q bo'lsa uz.
+
+**Tahrir:** frontend `PATCH /api/quizzes/{id}` (skalyar maydonlar) + savollarni
+qayta yaratadi (`question` DELETE/POST). Talaba uchun ko'rinishi darhol yangilanadi
+(`TakeTestView` har safar `GET /api/quizzes/{id}` dan o'qiydi, kesh yo'q).
