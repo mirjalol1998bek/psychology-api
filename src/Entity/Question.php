@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -70,6 +71,7 @@ class Question
     #[ORM\OneToMany(mappedBy: 'question', targetEntity: AnswerOption::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
     #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
+    #[ApiProperty(writableLink: true)]
     private Collection $options;
 
     public function __construct()
@@ -168,6 +170,13 @@ class Question
             $this->options->add($option);
             $option->setQuestion($this);
         }
+
+        return $this;
+    }
+
+    public function removeOption(AnswerOption $option): self
+    {
+        $this->options->removeElement($option);
 
         return $this;
     }
