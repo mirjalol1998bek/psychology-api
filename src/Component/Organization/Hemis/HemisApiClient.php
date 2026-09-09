@@ -10,12 +10,13 @@ use App\Component\Organization\Hemis\Dto\HemisStudent;
 use App\Component\User\Hemis\HemisAuthException;
 use App\Component\User\Hemis\HemisConfig;
 use App\Enum\StudyLanguage;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * HEMIS talaba REST API (student.uzswlu.uz/rest/v1) — token bilan.
  * Javob konverti: {"success":bool,"error":?string,"data":{"items":[],"pagination":{}}}.
- * Ko'p so'rovda 403 ("ruxsat etilmagan") — sekin urinamiz.
+ * Har so'rov `hemis_api` rate-limiter tokenini kutadi + 403'da sekin qayta urinadi.
  */
 final class HemisApiClient
 {
@@ -26,6 +27,7 @@ final class HemisApiClient
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly HemisConfig $config,
+        private readonly RateLimiterFactoryInterface $hemisApiLimiter,
     ) {
     }
 
@@ -126,9 +128,11 @@ final class HemisApiClient
     private function request(string $path, array $query): array
     {
         $attempt = 0;
+        $limiter = $this->hemisApiLimiter->create('global');
 
         do {
             $attempt++;
+            $limiter->reserve(1)->wait();
             $response = $this->httpClient->request('GET', $this->config->getApiBaseUrl() . $path, $this->options($query));
             $status = $response->getStatusCode();
             $raw = $response->getContent(false);

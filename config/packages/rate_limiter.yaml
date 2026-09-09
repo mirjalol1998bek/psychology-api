@@ -1,0 +1,8 @@
+framework:
+    rate_limiter:
+        # HEMIS REST API'ni bosishdan saqlaydi — 403 ("ruxsat etilmagan")
+        # aynan ko'p so'rovda keladi. Barcha worker'lar shu limitni bo'lishadi.
+        hemis_api:
+            policy: 'token_bucket'
+            limit: 10
+            rate: { interval: '1 second', amount: 3 }

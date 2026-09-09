@@ -17,4 +17,18 @@ class StudyGroupRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, StudyGroup::class);
     }
+
+    /**
+     * HEMIS'dan import qilingan guruhlar (tunlik sinxron shularni yangilaydi).
+     *
+     * @return list<StudyGroup>
+     */
+    public function findLinkedToHemis(): array
+    {
+        return $this->createQueryBuilder('g')
+            ->andWhere('g.externalId IS NOT NULL')
+            ->orderBy('g.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

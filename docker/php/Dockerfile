@@ -31,12 +31,16 @@ RUN apt-get update && apt-get install -y \
 	     intl \
 	     # pdo_pgsql \
 	     # soap \
+	&& pecl install apcu \
+	&& docker-php-ext-enable apcu \
 	&& curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN git config --global --add safe.directory /var/www/html
 
-# for supervisor & redis
-# RUN apt-get install -y supervisor && pecl install -o -f redis && rm -rf /tmp/pear && docker-php-ext-enable redis
+# supervisor — Messenger worker'lari (HEMIS sinxroni fon rejimida)
+RUN apt-get install -y supervisor
+# redis (ixtiyoriy — hozircha doctrine transport ishlatiladi):
+# RUN pecl install -o -f redis && rm -rf /tmp/pear && docker-php-ext-enable redis
 
 WORKDIR /var/www/html
 

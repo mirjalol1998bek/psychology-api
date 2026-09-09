@@ -60,3 +60,49 @@ CLI barcha faol guruhlarni oladi (yuzlab bo'lishi mumkin) — UI esa admin
 tanlaganini. Front `study_groups` / `users` ni fakultet/guruh kesimida
 `?itemsPerPage=` bilan bitta so'rovda oladi (`pagination_client_items_per_page`,
 maksimum 2000).
+
+## Fon rejimi — navbat, kechki jadval, tezlik cheklovi
+
+Katta sinxron (minglab talaba) HTTP so'rovni bloklamasligi kerak. Shuning uchun
+u **Symfony Messenger** orqali navbatga qo'yiladi va worker birma-bir bajaradi.
+
+### Oqim
+
+1. `NightlyHemisSyncMessage` (async transport, `doctrine://` — `messenger_messages`
+   jadvali).
+2. `NightlyHemisSyncHandler`:
+   - `LockFactory` (`hemis-nightly-sync`, 7200s) — ikki marta parallel ishlamaydi.
+   - fakultetlarni sinxronlaydi.
+   - HEMIS'ga bog'langan har guruh uchun (`StudyGroupRepository::findLinkedToHemis()`)
+     bitta `SyncGroupStudentsMessage` dispatch qiladi.
+3. `SyncGroupStudentsHandler` — bitta guruh talabalarini sinxronlaydi.
+4. Har HEMIS HTTP chaqiruvi **rate limiter** (`framework.rate_limiter.hemis_api`,
+   `token_bucket`, 3 so'rov/soniya, burst 10) bilan cheklanadi — `HemisApiClient`
+   `$hemisApiLimiter->reserve(1)->wait()`. 403'da eksponensial backoff.
+
+### Kechki jadval
+
+`src/Schedule/HemisSchedule.php` — `#[AsSchedule('hemis')]`,
+`RecurringMessage::cron('30 0 * * *', ...)` **Asia/Tashkent** (har kuni 00:30).
+Hech kimga xalaqit bermaydi.
+
+### Worker (supervisor)
+
+`docker/php/supervisor/messenger-worker.conf` — `php` konteynerida 2 ta jarayon:
+
+```
+messenger:consume async scheduler_hemis --time-limit=3600 --memory-limit=192M
+```
+
+`run-daemons.sh` konteyner ishga tushganda `supervisorctl start` qiladi.
+
+### Qo'lda ishga tushirish (darhol emas — navbatga)
+
+| Yo'l | |
+|---|---|
+| `POST /api/admin/hemis/students` (`ROLE_ADMIN`) | `202 Accepted` — fon rejimida |
+| `php bin/console ask:hemis:sync --queue` | navbatga qo'yadi |
+| UI: Tashkilot → "Barcha guruh talabalarini navbatga qo'yish" | `queueHemisStudentsSync()` |
+
+Navbatni kuzatish: `php bin/console messenger:stats`,
+`dbal:run-sql "SELECT COUNT(*) FROM messenger_messages"`.

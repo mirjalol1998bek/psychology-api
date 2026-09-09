@@ -5,9 +5,13 @@ services:
         restart: unless-stopped
         volumes:
             - ./:/var/www/html
+            # var/ (cache, log, kesh pool) — nomli volume'da, sekin Windows
+            # bind-mount'dan tashqarida. Symfony dev keshini o'qish/yozish
+            # shu bilan bir necha barobar tezlashadi.
+            - symfony_var:/var/www/html/var
             - ./docker/php/php.ini:/usr/local/etc/php/php.ini
-            # if you use supervisor
-            #- ./docker/php/supervisor/messenger-worker.conf:/etc/supervisor/conf.d/messenger-worker.conf
+            # Messenger worker'lari (HEMIS sinxroni fon rejimida)
+            - ./docker/php/supervisor/messenger-worker.conf:/etc/supervisor/conf.d/messenger-worker.conf
         depends_on:
             - db
 
@@ -152,3 +156,7 @@ services:
             - ./docker/mailserver/init-dkim.sh:/docker/init-dkim.sh
             - ./docker/mailserver/dkim:/docker/mailserver/dkim
             - ./docker/mailserver/opendkim/:/etc/opendkim/
+
+volumes:
+    # Symfony var/ (cache, log) — sekin Windows bind-mount'dan tashqarida.
+    symfony_var:
