@@ -87,7 +87,7 @@ final class HemisOrganizationSync
         $counts = new SyncCounts();
 
         foreach ($this->api->fetchGroups((string) $faculty->getExternalId()) as $item) {
-            if ($item->active === false) {
+            if ($item->active === false || $this->isGraduatedGroup($item->name) === true) {
                 continue;
             }
 
@@ -128,6 +128,12 @@ final class HemisOrganizationSync
         $this->entityManager->flush();
 
         return $counts;
+    }
+
+    /** HEMIS bitirgan guruhlar nomini " Y" bilan tugatadi. */
+    private function isGraduatedGroup(string $name): bool
+    {
+        return str_ends_with(rtrim($name), ' Y');
     }
 
     private function upsertFaculty(string $externalId, string $name, SyncCounts $counts): void
