@@ -84,7 +84,8 @@ Yangi `pending` foydalanuvchi yaratilganda `HemisLoginService` barcha adminlarga
 
 Ikkovi `security.yaml` da autentifikatsiyasiz (`^/api/auth/hemis`).
 
-## HEMIS REST API (org sinxron — ixtiyoriy, hali ulanmagan)
+## HEMIS REST API (org sinxron)
 
-`HEMIS_API_TOKEN` bilan fakultet/guruh/talaba ro'yxatini olish mumkin
-(`ask:hemis:sync`). Hozircha admin `POST /api/students` orqali qo'lda kiritadi.
+Fakultet/guruh/talabani HEMIS'dan ko'chirish — alohida hujjat:
+[`hemis-sync.md`](hemis-sync.md). Token bilan (`student.uzswlu.uz/rest/v1`),
+OAuth'dan mustaqil. Admin `POST /api/students` bilan qo'lda ham kiritishi mumkin.

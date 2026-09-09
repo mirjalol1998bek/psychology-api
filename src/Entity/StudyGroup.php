@@ -39,9 +39,10 @@ use Symfony\Component\Validator\Constraints as Assert;
     denormalizationContext: ['groups' => ['study-group:write']],
     security: "is_granted('IS_AUTHENTICATED_FULLY')",
 )]
-#[ApiFilter(SearchFilter::class, properties: ['name' => 'partial', 'faculty' => 'exact', 'studyLanguage' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['name' => 'partial', 'faculty' => 'exact', 'studyLanguage' => 'exact', 'externalId' => 'exact'])]
 #[ApiFilter(OrderFilter::class, properties: ['name', 'createdAt'])]
 #[ORM\Entity(repositoryClass: StudyGroupRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_STUDY_GROUP_EXTERNAL_ID', fields: ['externalId'])]
 class StudyGroup implements CreatedAtSettableInterface, UpdatedAtSettableInterface
 {
     use CreatedAtAccessorsTrait;

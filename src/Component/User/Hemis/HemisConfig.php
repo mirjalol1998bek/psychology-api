@@ -27,6 +27,11 @@ final class HemisConfig
         return $this->parameterGetter->getString('hemis.api_token');
     }
 
+    public function getApiBaseUrl(): string
+    {
+        return rtrim($this->parameterGetter->getString('hemis.api_base_url'), '/');
+    }
+
     public function getAuthorizeUrl(): string
     {
         return $this->parameterGetter->getString('hemis.auth_url');
