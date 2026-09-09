@@ -21,8 +21,9 @@ TLS: `config/certs/hemis-ca-chain.pem` (HEMIS oraliq sertifikatni yubormaydi).
   `HemisApiClient` sekinlashib qayta urinadi (3 marta, backoff).
 - `data/department-list` — `structureType.code === "11"` → **fakultet**
 - `data/group-list?_department=<facultyExtId>` — fakultet guruhlari. **Diqqat:**
-  bitirgan eski guruhlarni ham `active:true` bilan qaytaradi (bir fakultetda
-  300–600 ta). Shu sababli guruhlar **to'plab import qilinmaydi**.
+  eski (bitirgan) guruhlarni ham `active:true` bilan qaytaradi (bir fakultetda
+  300–600 ta). CLI nomi " Y" bilan tugaganlarni tashlaydi; UI'da guruhlar
+  **to'plab import qilinmaydi** — admin kerakligini tanlaydi.
 - `data/student-list?_group=<groupExtId>` — faqat **hozir o'qiyotgan**
   (`studentStatus.code === "11"`) talabalar. `student_id_number` → `User.hemisId`.
 - Ta'lim tili: `educationLang.code` — `"12"` → `ru`, boshqasi → `uz`.
@@ -51,8 +52,11 @@ roli/holati o'zgartirilmaydi.**
 ## CLI
 
 ```
-php bin/console ask:hemis:sync            # fakultetlar + har fakultet barcha guruhlari
+php bin/console ask:hemis:sync            # fakultetlar + har fakultet guruhlari (" Y" siz)
 php bin/console ask:hemis:sync --students # + har guruh talabalari (sekin)
 ```
 
-CLI barcha faol guruhlarni oladi (ko'p bo'lishi mumkin) — UI esa admin tanlaganini.
+CLI barcha faol guruhlarni oladi (yuzlab bo'lishi mumkin) — UI esa admin
+tanlaganini. Front `study_groups` / `users` ni fakultet/guruh kesimida
+`?itemsPerPage=` bilan bitta so'rovda oladi (`pagination_client_items_per_page`,
+maksimum 2000).
