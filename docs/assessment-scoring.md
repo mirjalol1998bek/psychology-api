@@ -19,7 +19,7 @@
 | `TEMPERAMENT_STATEMENTS` | `CategoryTallyScorer` | Har bayonot = "Ha/Yo'q". Tanlangan "Ha" variantlar `AnswerOption.categoryKey` bo'yicha sanaladi. Eng ko'p ballli kategoriya — natija. | kategoriya → ball |
 | `TEMPERAMENT_CHOICE` | `CategoryTallyScorer` | Har savolga bitta javob; `option.categoryKey` bo'yicha sanaladi; argmax. | kategoriya → ball |
 | `FIGURE_CHOICE` | `FigureChoiceScorer` | Bitta figura tanlanadi; `option.categoryKey` (yo'q bo'lsa `text`) — natija. | bo'sh |
-| `SCORE_SCALE` | `ScoreScaleScorer` | Tanlangan variant ballari yig'iladi. Teskari savolda (`Question.getIsReversed()`) `maxOptionScore - optionScore`. Yig'indi `ScoreRange` oralig'iga tushadi → `resultKey`. | `[{label:'score', value: total}]` |
+| `SCORE_SCALE` | `ScoreScaleScorer` | Tanlangan variant ballari yig'iladi. Teskari savolda (`Question.getIsReversed()`) `(maxOptionScore + minOptionScore) - optionScore` (Zung: `5 - ball`). Yig'indi `ScoreRange` oralig'iga tushadi → `resultKey`. | `[{label:'score', value: total}]` |
 
 `Tally` — value object (`array<string,int>` ni inkapsulyatsiya qiladi):
 `register`, `add`, `topKey`, `toBreakdown`.

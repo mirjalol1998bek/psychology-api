@@ -41,7 +41,7 @@ final class ScoreScaleScorer implements ScorerInterface
     private function pointsFor(?Question $question, int $optionScore): int
     {
         if ($question !== null && $question->getIsReversed() === true) {
-            return $this->maxOptionScore($question) - $optionScore;
+            return ($this->maxOptionScore($question) + $this->minOptionScore($question)) - $optionScore;
         }
 
         return $optionScore;
@@ -56,6 +56,17 @@ final class ScoreScaleScorer implements ScorerInterface
         }
 
         return $max;
+    }
+
+    private function minOptionScore(Question $question): int
+    {
+        $scores = [];
+
+        foreach ($question->getOptions() as $option) {
+            $scores[] = $option->getScore();
+        }
+
+        return $scores === [] ? 0 : min($scores);
     }
 
     private function matchRange(Attempt $attempt, int $total): ScoreRange
