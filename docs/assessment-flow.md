@@ -38,6 +38,11 @@ Bir necha marta chaqirsa bo'ladi (autosave / to'liq almashtirish).
 `POST /api/attempts/{id}/submit` → `AttemptSubmitAction` → `AttemptSubmitter`
 (ballash — [`assessment-scoring.md`](assessment-scoring.md)). Natija `Attempt.result`.
 
+Yakunlangach talaba qayta topshira olmaydi (§3 mavjud urinish qaytariladi).
+Xodim `POST /api/attempts/{id}/reset` (`ROLE_PSYCHOLOGIST`) qilsa — javob+natija
+tozalanadi, status `in_progress`, talaba yana bir marta topshiradi. Admin
+`DELETE /api/attempts/{id}` — urinishni butunlay o'chiradi (xato natijani tozalash).
+
 ## 6. Natijalar
 
 - `GET /api/attempts` — `StudentAttemptProvider` (talabaga o'zi, xodimga hammasi).

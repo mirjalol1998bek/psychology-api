@@ -24,5 +24,12 @@ Unikal: (`student`, `quiz`) — bir quiz bo'yicha bitta urinish.
 | `POST /api/attempts/start` | `{categoryId}` → `AttemptStartAction` |
 | `POST /api/attempts/{id}/answers` | `{answers:[...]}` → `AttemptSaveAnswersAction` |
 | `POST /api/attempts/{id}/submit` | `AttemptSubmitAction` (ballash) |
+| `POST /api/attempts/{id}/reset` | **`ROLE_PSYCHOLOGIST`** — javob+natijani tozalab qayta topshirishga ruxsat |
+| `DELETE /api/attempts/{id}` | **`ROLE_ADMIN`** — urinish + natijani butunlay o'chirish |
+
+**Bir marta qoidasi:** `AttemptStarter::start()` mavjud urinishni qaytaradi, shuning
+uchun talaba yakunlangan testni qayta topshira olmaydi. Faqat xodim `reset` (yoki
+admin `DELETE`) qilsa — talaba yana bir marta topshiradi. Talabaning o'zi
+`reset` qila olmaydi (frontend'da "Qayta topshirish" tugmasi yo'q).
 
 Oqim: [`assessment-flow.md`](assessment-flow.md).

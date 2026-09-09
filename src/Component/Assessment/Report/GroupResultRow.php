@@ -14,6 +14,7 @@ final readonly class GroupResultRow
         public string $label,
         public ?int $score,
         public ?string $submittedAt,
+        public ?int $attemptId,
     ) {
     }
 }

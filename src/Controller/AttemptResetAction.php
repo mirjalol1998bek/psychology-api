@@ -7,16 +7,17 @@ namespace App\Controller;
 use App\Component\Assessment\AttemptResetter;
 use App\Controller\Base\AbstractController;
 use App\Entity\Attempt;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Attribute\IsGranted;
 
+/**
+ * Talabaning urinishini tozalab, qayta topshirishga ruxsat beradi.
+ * Faqat xodim — talaba o'zi qayta topshira olmaydi (bir marta qoida).
+ */
+#[IsGranted('ROLE_PSYCHOLOGIST')]
 class AttemptResetAction extends AbstractController
 {
     public function __invoke(Attempt $data, AttemptResetter $attemptResetter): Attempt
     {
-        if ($data->getStudent() !== $this->getUser() && $this->isGranted('ROLE_PSYCHOLOGIST') === false) {
-            throw new AccessDeniedHttpException('Bu urinish boshqa talabaga tegishli.');
-        }
-
         $attemptResetter->reset($data);
 
         return $data;

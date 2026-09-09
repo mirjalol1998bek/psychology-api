@@ -7,6 +7,7 @@ namespace App\Entity;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -48,8 +49,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: 'attempts/{id}/reset',
             controller: AttemptResetAction::class,
             input: false,
+            security: "is_granted('ROLE_PSYCHOLOGIST')",
             name: 'resetAttempt',
         ),
+        new Delete(security: "is_granted('ROLE_ADMIN')"),
         new Post(
             uriTemplate: 'attempts/{id}/answers',
             controller: AttemptSaveAnswersAction::class,

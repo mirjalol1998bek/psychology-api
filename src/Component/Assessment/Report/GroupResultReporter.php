@@ -54,7 +54,7 @@ final class GroupResultReporter
 
     private function toRow(User $student, ?AssessmentResult $result): GroupResultRow
     {
-        $submittedAt = $result?->getAttempt()?->getSubmittedAt();
+        $attempt = $result?->getAttempt();
 
         return new GroupResultRow(
             (int) $student->getId(),
@@ -63,7 +63,8 @@ final class GroupResultReporter
             $result?->getResultKey() ?? '',
             $result?->getLabel() ?? '',
             $result?->getScore(),
-            $submittedAt?->format(DATE_ATOM),
+            $attempt?->getSubmittedAt()?->format(DATE_ATOM),
+            $attempt?->getId(),
         );
     }
 }

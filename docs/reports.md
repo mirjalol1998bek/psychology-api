@@ -14,10 +14,11 @@ oladi (CSV eksport frontend'da).
 ```json
 [{ "studentId": 2, "hemisId": "50001", "fullName": "Talaba 1",
    "resultKey": "Doira", "label": "Doira", "score": null,
-   "submittedAt": "2026-09-08T06:41:16+00:00" }]
+   "submittedAt": "2026-09-08T06:41:16+00:00", "attemptId": 42 }]
 ```
 
-`score` — faqat `SCORE_SCALE` metodikalarida to'ladi.
+`score` — faqat `SCORE_SCALE` metodikalarida to'ladi. `attemptId` — natija
+bo'lsa (`null` — topshirmagan); xodim shu id bilan `reset`/`DELETE` qiladi.
 
 ## Guruh pasportlari
 
