@@ -98,11 +98,30 @@ messenger:consume async scheduler_hemis --time-limit=3600 --memory-limit=192M
 
 ### Qo'lda ishga tushirish (darhol emas — navbatga)
 
-| Yo'l | |
+| Yo'l | Vazifasi |
 |---|---|
-| `POST /api/admin/hemis/students` (`ROLE_ADMIN`) | `202 Accepted` — fon rejimida |
-| `php bin/console ask:hemis:sync --queue` | navbatga qo'yadi |
-| UI: Tashkilot → "Barcha guruh talabalarini navbatga qo'yish" | `queueHemisStudentsSync()` |
+| `POST /api/admin/hemis/students` (`ROLE_ADMIN`) | import qilingan **barcha** guruh talabalarini qayta sinxronlash (`NightlyHemisSyncMessage`) |
+| `POST /api/admin/hemis/faculties/{id}/groups` (`ROLE_ADMIN`) | fakultetning **barcha** HEMIS guruhlarini + talabalarini import (`SyncFacultyGroupsMessage`) |
+| `php bin/console ask:hemis:sync --queue` | nightly xabarni navbatga qo'yadi |
+| UI: Tashkilot → "Barcha talabalarni yangilash" | `queueHemisStudentsSync()` |
+| UI: Tashkilot → HEMIS guruhlari dialogi → "Barcha guruhlarni yuklash" | `queueHemisFacultyGroups(facultyId)` |
+
+**Diqqat:** HEMIS `group-list` eski (bitirgan) kurslarni ham `active:true` bilan
+qaytaradi — bitta fakultetda **300+ guruh** bo'lishi mumkin. "Barcha guruhlarni
+yuklash" hammasini import qiladi (ishonchli "joriy o'quv yili" filtri yo'q).
 
 Navbatni kuzatish: `php bin/console messenger:stats`,
 `dbal:run-sql "SELECT COUNT(*) FROM messenger_messages"`.
+
+### Muhim: `cache:clear` dan keyin worker'larni qayta ishga tushiring
+
+Uzoq ishlaydigan worker eski kompilyatsiya qilingan konteynerni ushlab turadi.
+`cache:clear` (yoki `composer require`) dan keyin:
+
+```
+docker compose exec php php bin/console messenger:stop-workers
+```
+
+supervisor ularni yangi kesh bilan qayta ko'taradi. Aks holda worker
+"Failed to open stream: .../var/cache/dev/Container.../..." bilan sinadi va
+xabar 1 soat "delivered" holatida qotib qoladi.
