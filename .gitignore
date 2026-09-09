@@ -1,4 +1,7 @@
 ###> symfony/framework-bundle ###
+# Maxfiy qiymatlar git'ga tushmaydi. Namuna: .env.example -> cp .env.example .env
+/.env
+/.env.dev
 /.env.local
 /.env.local.php
 /.env.*.local

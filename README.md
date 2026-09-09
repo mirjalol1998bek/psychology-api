@@ -45,7 +45,7 @@ docker compose exec php bin/console ask:install
 ```
 
 **Done! You can open <a href="http://localhost:8507/api" target="_blank">http://localhost:8507/api</a> via browser. 
-By the way, you can change this port by changing ```DOCKER_NGINX_PORT``` variable in [.env](.env) file.** 
+By the way, you can change this port by changing ```DOCKER_NGINX_PORT``` variable in `.env` file.** 
 
 ## Docker
 For enter to php container run 
@@ -63,7 +63,7 @@ For enter to nginx container run
 docker compose exec nginx bash
 ```
 
-You can change containers prefix by changing ```DOCKER_PROJECT_NAME``` variable in [.env](.env) file.  
+You can change containers prefix by changing ```DOCKER_PROJECT_NAME``` variable in `.env` file.  
 
 Also, you can change public ports of nginx and mysql by changing ```DOCKER_NGINX_PORT``` and ```DOCKER_DATABASE_PORT```
 
