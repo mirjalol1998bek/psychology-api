@@ -6,7 +6,6 @@ namespace App\Command;
 
 use App\Component\Organization\Hemis\HemisOrganizationSync;
 use App\Component\Organization\Hemis\Message\NightlyHemisSyncMessage;
-use App\Entity\Faculty;
 use App\Repository\FacultyRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,7 +17,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsCommand(
     name: 'ask:hemis:sync',
-    description: 'HEMIS REST API\'dan fakultetlar + guruhlarni (ixtiyoriy: talabalarni) ko\'chirish',
+    description: 'HEMIS REST API\'dan fakultet + hozirgi guruh + talabalarni ko\'chirish',
 )]
 class AskHemisSyncCommand extends Command
 {
@@ -32,7 +31,6 @@ class AskHemisSyncCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('students', null, InputOption::VALUE_NONE, 'Har guruh talabalarini ham ko\'chirish (sekin)');
         $this->addOption('queue', null, InputOption::VALUE_NONE, 'Darhol bajarmasdan navbatga qo\'yish (tunlik sinxron kabi)');
     }
 
@@ -50,36 +48,16 @@ class AskHemisSyncCommand extends Command
         $faculties = $this->sync->syncFaculties();
         $io->success(sprintf('Fakultetlar: %d yangi, %d yangilandi', $faculties->created, $faculties->updated));
 
-        $groupsTotal = 0;
+        $total = 0;
 
-        foreach ($this->facultyRepository->findAll() as $faculty) {
-            if ($faculty->getExternalId() === null) {
-                continue;
-            }
-
-            $groups = $this->sync->syncAllGroups($faculty);
-            $groupsTotal += $groups->total();
-            $io->writeln(sprintf('  %s — %d guruh', (string) $faculty->getName(), $groups->total()));
-
-            if ($input->getOption('students') === true) {
-                $this->syncFacultyStudents($faculty, $io);
-            }
+        foreach ($this->facultyRepository->findLinkedToHemis() as $faculty) {
+            $counts = $this->sync->syncFacultyStudents($faculty);
+            $total += $counts->total();
+            $io->writeln(sprintf('  %s — %d talaba', (string) $faculty->getName(), $counts->total()));
         }
 
-        $io->success(sprintf('Guruhlar jami: %d', $groupsTotal));
+        $io->success(sprintf('Talabalar jami: %d', $total));
 
         return Command::SUCCESS;
-    }
-
-    private function syncFacultyStudents(Faculty $faculty, SymfonyStyle $io): void
-    {
-        foreach ($faculty->getGroups() as $group) {
-            if ($group->getExternalId() === null) {
-                continue;
-            }
-
-            $students = $this->sync->syncGroupStudents($group);
-            $io->writeln(sprintf('    %s — %d talaba', (string) $group->getName(), $students->total()));
-        }
     }
 }

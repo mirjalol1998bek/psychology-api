@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Assignment;
+use App\Entity\Faculty;
 use App\Entity\StudyGroup;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -30,5 +33,22 @@ class StudyGroupRepository extends ServiceEntityRepository
             ->orderBy('g.id', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Fakultetning talabasi ham, biriktirilgan testi ham yo'q HEMIS guruhlarini
+     * o'chiradi (eski/bitirgan kurslar sinxrondan keyin tozalanadi).
+     */
+    public function pruneEmptyHemisGroups(Faculty $faculty): int
+    {
+        return (int) $this->createQueryBuilder('g')
+            ->delete()
+            ->where('g.faculty = :faculty')
+            ->andWhere('g.externalId IS NOT NULL')
+            ->andWhere('g.id NOT IN (SELECT IDENTITY(u.studyGroup) FROM ' . User::class . ' u WHERE u.studyGroup IS NOT NULL)')
+            ->andWhere('g.id NOT IN (SELECT IDENTITY(a.studyGroup) FROM ' . Assignment::class . ' a)')
+            ->setParameter('faculty', $faculty)
+            ->getQuery()
+            ->execute();
     }
 }

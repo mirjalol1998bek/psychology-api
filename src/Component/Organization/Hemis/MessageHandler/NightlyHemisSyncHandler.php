@@ -6,25 +6,24 @@ namespace App\Component\Organization\Hemis\MessageHandler;
 
 use App\Component\Organization\Hemis\HemisOrganizationSync;
 use App\Component\Organization\Hemis\Message\NightlyHemisSyncMessage;
-use App\Component\Organization\Hemis\Message\SyncGroupStudentsMessage;
-use App\Repository\StudyGroupRepository;
+use App\Component\Organization\Hemis\Message\SyncFacultyStudentsMessage;
+use App\Repository\FacultyRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Fakultetlarni yangilaydi va import qilingan har guruh uchun alohida
- * SyncGroupStudentsMessage tashlaydi. Xabarlar navbatda birma-bir bajariladi
- * (bir vaqtda 50 000 so'rov emas). Lock — oldingi tunning ishi tugamagan
- * bo'lsa, ustidan yugurmaydi.
+ * Fakultetlarni yangilaydi va HEMIS'ga bog'langan har fakultet uchun bitta
+ * SyncFacultyStudentsMessage tashlaydi (14 ta xabar, mingtalab emas). Lock —
+ * oldingi tunning ishi tugamagan bo'lsa, ustidan yugurmaydi.
  */
 #[AsMessageHandler]
 final readonly class NightlyHemisSyncHandler
 {
     public function __construct(
         private HemisOrganizationSync $sync,
-        private StudyGroupRepository $studyGroupRepository,
+        private FacultyRepository $facultyRepository,
         private MessageBusInterface $bus,
         private LockFactory $lockFactory,
         private LoggerInterface $logger,
@@ -43,13 +42,13 @@ final readonly class NightlyHemisSyncHandler
 
         try {
             $this->sync->syncFaculties();
-            $groups = $this->studyGroupRepository->findLinkedToHemis();
+            $faculties = $this->facultyRepository->findLinkedToHemis();
 
-            foreach ($groups as $group) {
-                $this->bus->dispatch(new SyncGroupStudentsMessage((int) $group->getId()));
+            foreach ($faculties as $faculty) {
+                $this->bus->dispatch(new SyncFacultyStudentsMessage((int) $faculty->getId()));
             }
 
-            $this->logger->info(sprintf('HEMIS nightly sync queued %d groups.', count($groups)));
+            $this->logger->info(sprintf('HEMIS nightly sync queued %d faculties.', count($faculties)));
         } finally {
             $lock->release();
         }

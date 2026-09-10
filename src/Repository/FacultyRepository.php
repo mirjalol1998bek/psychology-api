@@ -17,4 +17,18 @@ class FacultyRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Faculty::class);
     }
+
+    /**
+     * HEMIS bilan bog'langan (externalId bor) fakultetlar.
+     *
+     * @return list<Faculty>
+     */
+    public function findLinkedToHemis(): array
+    {
+        return $this->createQueryBuilder('f')
+            ->andWhere('f.externalId IS NOT NULL')
+            ->orderBy('f.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -24,8 +24,13 @@ TLS: `config/certs/hemis-ca-chain.pem` (HEMIS oraliq sertifikatni yubormaydi).
   eski (bitirgan) guruhlarni ham `active:true` bilan qaytaradi (bir fakultetda
   300–600 ta). CLI nomi " Y" bilan tugaganlarni tashlaydi; UI'da guruhlar
   **to'plab import qilinmaydi** — admin kerakligini tanlaydi.
-- `data/student-list?_group=<groupExtId>` — faqat **hozir o'qiyotgan**
-  (`studentStatus.code === "11"`) talabalar. `student_id_number` → `User.hemisId`.
+- `data/student-list?_group=<groupExtId>` — bitta guruhning **hozir o'qiyotgan**
+  (`studentStatus.code === "11"`) talabalari. `student_id_number` → `User.hemisId`.
+- **`data/student-list?_department=<facultyExtId>`** — fakultetning **barcha**
+  hozirgi talabalari (sahifalangan). Har yozuvda `group.id` / `group.name` /
+  `group.educationLang` bor. **Asosiy yo'l:** guruhlarni shundan yig'amiz —
+  faqat talabasi bor guruhlar yaratiladi, eski/bo'sh guruhlar tegilmaydi.
+  Bir fakultet ≈ 5–10 sahifa (`limit=200`), butun universitet ≈ 40 so'rov.
 - Ta'lim tili: `educationLang.code` — `"12"` → `ru`, boshqasi → `uz`.
 
 ## Moslashtirish (upsert)
@@ -45,9 +50,11 @@ roli/holati o'zgartirilmaydi.**
 | Yo'l | Vazifasi |
 |---|---|
 | `POST /api/admin/hemis/faculties` | barcha fakultetlarni sinxronlash → `{created, updated}` |
+| `POST /api/admin/hemis/students` | butun universitet — fon rejimida (`202`) |
+| `POST /api/admin/hemis/faculties/{id}/students` | bitta fakultetning guruh+talabalari — fon rejimida (`202`) |
 | `GET /api/admin/hemis/faculties/{id}/groups` | fakultetning HEMIS guruhlari (ro'yxat, **saqlanmaydi**) |
 | `POST /api/admin/hemis/faculties/{id}/groups/{groupExternalId}` | bitta guruhni import + talabalarini sinxronlash → `{created, updated}` |
-| `POST /api/admin/hemis/groups/{id}/students` | guruh talabalarini qayta sinxronlash |
+| `POST /api/admin/hemis/groups/{id}/students` | bitta guruh talabalarini qayta sinxronlash |
 
 ## CLI
 
@@ -68,23 +75,29 @@ u **Symfony Messenger** orqali navbatga qo'yiladi va worker birma-bir bajaradi.
 
 ### Oqim
 
-1. `NightlyHemisSyncMessage` (async transport, `doctrine://` — `messenger_messages`
-   jadvali).
+1. `NightlyHemisSyncMessage` (async transport, `doctrine://` — `messenger_messages`).
 2. `NightlyHemisSyncHandler`:
    - `LockFactory` (`hemis-nightly-sync`, 7200s) — ikki marta parallel ishlamaydi.
-   - fakultetlarni sinxronlaydi.
-   - HEMIS'ga bog'langan har guruh uchun (`StudyGroupRepository::findLinkedToHemis()`)
-     bitta `SyncGroupStudentsMessage` dispatch qiladi.
-3. `SyncGroupStudentsHandler` — bitta guruh talabalarini sinxronlaydi.
+   - `syncFaculties()` — fakultetlarni yangilaydi.
+   - HEMIS'ga bog'langan **har fakultet** uchun (`FacultyRepository::findLinkedToHemis()`)
+     bitta `SyncFacultyStudentsMessage` dispatch qiladi (14 ta xabar, mingtalab emas).
+3. `SyncFacultyStudentsHandler` — `syncFacultyStudents(Faculty)`:
+   `student-list?_department=` ni sahifalab oladi, har talaba uchun guruhini
+   (`group.id`/`group.name`) upsert qiladi + talabani upsert qiladi. Fakultet
+   qulfi (`hemis-faculty-<id>`, 1800s, non-blocking) — tez-tez bosilsa takrorlamaydi.
 4. Har HEMIS HTTP chaqiruvi **rate limiter** (`framework.rate_limiter.hemis_api`,
    `token_bucket`, 3 so'rov/soniya, burst 10) bilan cheklanadi — `HemisApiClient`
    `$hemisApiLimiter->reserve(1)->wait()`. 403'da eksponensial backoff.
 
+`SyncGroupStudentsMessage` (bitta guruh) hali bor — hozir hech kim dispatch
+qilmaydi, kelajakda bitta guruhni fon rejimida yangilash uchun.
+
 ### Kechki jadval
 
 `src/Schedule/HemisSchedule.php` — `#[AsSchedule('hemis')]`,
-`RecurringMessage::cron('30 0 * * *', ...)` **Asia/Tashkent** (har kuni 00:30).
-Hech kimga xalaqit bermaydi.
+`RecurringMessage::cron('30 0 * * *', ...)` **Asia/Tashkent** (har kuni 00:30),
+`->stateful($cache)` — kompyuter 00:30 da o'chiq bo'lsa, worker keyingi safar
+ishga tushganda **o'tkazib yuborilgan ishni bajaradi**.
 
 ### Worker (supervisor)
 
@@ -100,15 +113,15 @@ messenger:consume async scheduler_hemis --time-limit=3600 --memory-limit=192M
 
 | Yo'l | Vazifasi |
 |---|---|
-| `POST /api/admin/hemis/students` (`ROLE_ADMIN`) | import qilingan **barcha** guruh talabalarini qayta sinxronlash (`NightlyHemisSyncMessage`) |
-| `POST /api/admin/hemis/faculties/{id}/groups` (`ROLE_ADMIN`) | fakultetning **barcha** HEMIS guruhlarini + talabalarini import (`SyncFacultyGroupsMessage`) |
+| `POST /api/admin/hemis/students` (`ROLE_ADMIN`) | **butun universitet** — har fakultet uchun `SyncFacultyStudentsMessage` (`NightlyHemisSyncMessage`) |
+| `POST /api/admin/hemis/faculties/{id}/students` (`ROLE_ADMIN`) | bitta fakultetning barcha hozirgi guruh+talabalari (`SyncFacultyStudentsMessage`) |
 | `php bin/console ask:hemis:sync --queue` | nightly xabarni navbatga qo'yadi |
 | UI: Tashkilot → "Barcha talabalarni yangilash" | `queueHemisStudentsSync()` |
-| UI: Tashkilot → HEMIS guruhlari dialogi → "Barcha guruhlarni yuklash" | `queueHemisFacultyGroups(facultyId)` |
+| UI: Tashkilot → HEMIS guruhlari dialogi → "Barcha guruhlarni yuklash" | `queueHemisFacultyStudents(facultyId)` |
 
-**Diqqat:** HEMIS `group-list` eski (bitirgan) kurslarni ham `active:true` bilan
-qaytaradi — bitta fakultetda **300+ guruh** bo'lishi mumkin. "Barcha guruhlarni
-yuklash" hammasini import qiladi (ishonchli "joriy o'quv yili" filtri yo'q).
+Faqat **hozir o'qiyotgan** talabasi bor guruhlar yaratiladi — eski/bo'sh
+guruhlar tegilmaydi. Bitta fakultet ≈ 15–30 soniya, butun universitet ≈ 3–5
+daqiqa (rate limiter 3 so'rov/soniya).
 
 Navbatni kuzatish: `php bin/console messenger:stats`,
 `dbal:run-sql "SELECT COUNT(*) FROM messenger_messages"`.

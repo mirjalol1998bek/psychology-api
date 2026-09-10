@@ -75,18 +75,41 @@ final class HemisApiClient
     }
 
     /**
+     * Bitta guruhning talabalari.
+     *
      * @return list<HemisStudent>
      */
     public function fetchStudents(string $groupExternalId): array
     {
+        return $this->mapStudents($this->collect('/data/student-list', ['_group' => $groupExternalId]));
+    }
+
+    /**
+     * Fakultetning barcha hozirgi talabalari — har yozuvda guruhi ham bor.
+     * Guruhlarni shundan yig'amiz (faqat talabasi bor guruhlar yaratiladi).
+     *
+     * @return list<HemisStudent>
+     */
+    public function fetchFacultyStudents(string $facultyExternalId): array
+    {
+        return $this->mapStudents($this->collect('/data/student-list', ['_department' => $facultyExternalId]));
+    }
+
+    /**
+     * @param list<array<string, mixed>> $items
+     * @return list<HemisStudent>
+     */
+    private function mapStudents(array $items): array
+    {
         $students = [];
 
-        foreach ($this->collect('/data/student-list', ['_group' => $groupExternalId]) as $item) {
+        foreach ($items as $item) {
             $students[] = new HemisStudent(
                 (string) ($item['student_id_number'] ?? ''),
                 (string) ($item['full_name'] ?? ''),
                 $this->nullableString($item['image_full'] ?? null),
                 $this->stringAt($item, 'group', 'id'),
+                $this->stringAt($item, 'group', 'name'),
                 $this->mapLanguage($this->stringAt($item, 'group', 'educationLang', 'code')),
                 $this->stringAt($item, 'studentStatus', 'code') === '11',
             );

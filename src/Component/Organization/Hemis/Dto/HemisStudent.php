@@ -13,6 +13,7 @@ final readonly class HemisStudent
         public string $fullName,
         public ?string $image,
         public string $groupExternalId,
+        public string $groupName,
         public StudyLanguage $studyLanguage,
         public bool $studying,
     ) {

@@ -25,13 +25,15 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * moslashtiradi — mavjudini yangilaydi, yo'g'ini yaratadi. Rol/holatni
  * o'zgartirmaydi (admin bergan huquqlar saqlanadi).
  *
- * HEMIS `group-list` barcha (eski bitirgan) guruhlarni ham qaytaradi, shuning
- * uchun guruhlar to'plab import qilinmaydi — admin `listGroups` dan kerakligini
- * tanlab `importGroup` qiladi. `syncGroupStudents` esa faqat hozir o'qiyotgan
- * talabalarni oladi (`_group` filtri).
+ * Asosiy yo'l — `syncFacultyStudents`: `student-list?_department=` ni oladi,
+ * guruhlarni talabalardan yig'adi (faqat talabasi bor guruhlar yaratiladi).
+ * `listGroups`/`importGroup` — admin bitta guruhni qo'lda tanlab import qilishi
+ * uchun (`group-list?_department=`, eski guruhlarni ham qaytaradi).
  */
 final class HemisOrganizationSync
 {
+    private const FLUSH_EVERY = 500;
+
     public function __construct(
         private readonly HemisApiClient $api,
         private readonly FacultyRepository $facultyRepository,
@@ -78,29 +80,6 @@ final class HemisOrganizationSync
         return $groups;
     }
 
-    /**
-     * Fakultetning barcha faol guruhlarini import qiladi (CLI — `ask:hemis:sync`).
-     * UI buni ishlatmaydi (juda ko'p eski guruh bo'lishi mumkin).
-     */
-    public function syncAllGroups(Faculty $faculty): SyncCounts
-    {
-        $counts = new SyncCounts();
-
-        foreach ($this->api->fetchGroups((string) $faculty->getExternalId()) as $item) {
-            if ($item->active === false || $this->isGraduatedGroup($item->name) === true) {
-                continue;
-            }
-
-            $existing = $this->studyGroupRepository->findOneBy(['externalId' => $item->externalId]) !== null;
-            $this->upsertGroup($faculty, $item);
-            $existing ? $counts->updated++ : $counts->created++;
-        }
-
-        $this->entityManager->flush();
-
-        return $counts;
-    }
-
     public function importGroup(Faculty $faculty, string $groupExternalId): StudyGroup
     {
         foreach ($this->api->fetchGroups((string) $faculty->getExternalId()) as $item) {
@@ -130,10 +109,72 @@ final class HemisOrganizationSync
         return $counts;
     }
 
-    /** HEMIS bitirgan guruhlar nomini " Y" bilan tugatadi. */
-    private function isGraduatedGroup(string $name): bool
+    /**
+     * Fakultetning barcha hozirgi talabalari — `student-list?_department=`.
+     * Guruhlar talabalardan yig'iladi (faqat talabasi bor guruhlar yaratiladi).
+     * Har FLUSH_EVERY talabadan keyin flush + clear — minglab talabada xotira
+     * to'lib ketmasin.
+     */
+    public function syncFacultyStudents(Faculty $faculty): SyncCounts
     {
-        return str_ends_with(rtrim($name), ' Y');
+        $counts = new SyncCounts();
+        $facultyId = (int) $faculty->getId();
+        $items = $this->api->fetchFacultyStudents((string) $faculty->getExternalId());
+        $groups = [];
+        $done = 0;
+
+        foreach ($items as $item) {
+            if ($this->isImportableStudent($item) === false) {
+                continue;
+            }
+
+            $group = $groups[$item->groupExternalId] ??= $this->resolveGroup($faculty, $item);
+            $this->upsertStudent($group, $item, $counts);
+            $done++;
+
+            if ($done % self::FLUSH_EVERY === 0) {
+                $this->entityManager->flush();
+                $this->entityManager->clear();
+                $faculty = $this->requireFaculty($facultyId);
+                $groups = [];
+            }
+        }
+
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+        $this->studyGroupRepository->pruneEmptyHemisGroups($this->requireFaculty($facultyId));
+
+        return $counts;
+    }
+
+    private function requireFaculty(int $id): Faculty
+    {
+        $faculty = $this->facultyRepository->find($id);
+
+        if ($faculty === null) {
+            throw new NotFoundHttpException('Fakultet topilmadi: ' . $id);
+        }
+
+        return $faculty;
+    }
+
+    private function isImportableStudent(HemisStudent $item): bool
+    {
+        return $item->studying === true
+            && $item->studentIdNumber !== ''
+            && $item->groupExternalId !== '';
+    }
+
+    private function resolveGroup(Faculty $faculty, HemisStudent $item): StudyGroup
+    {
+        return $this->upsertGroup($faculty, new HemisGroup(
+            $item->groupExternalId,
+            $item->groupName,
+            (string) $faculty->getExternalId(),
+            (string) $faculty->getName(),
+            $item->studyLanguage,
+            true,
+        ));
     }
 
     private function upsertFaculty(string $externalId, string $name, SyncCounts $counts): void

@@ -5,6 +5,9 @@ framework:
         transports:
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                # Worker OOM/crash bo'lsa, xabar 5 daqiqada qayta beriladi (1 soat emas).
+                options:
+                    redeliver_timeout: 300
                 retry_strategy:
                     max_retries: 3
                     delay: 10000
@@ -16,7 +19,7 @@ framework:
         routing:
             # HEMIS sinxroni — og'ir, sekin, navbatma-navbat. Web so'rovni bloklamaydi.
             App\Component\Organization\Hemis\Message\SyncGroupStudentsMessage: async
-            App\Component\Organization\Hemis\Message\SyncFacultyGroupsMessage: async
+            App\Component\Organization\Hemis\Message\SyncFacultyStudentsMessage: async
             App\Component\Organization\Hemis\Message\NightlyHemisSyncMessage: async
 
 when@test:
