@@ -27,6 +27,9 @@ Unikal: (`student`, `quiz`) — bir quiz bo'yicha bitta urinish.
 | `POST /api/attempts/{id}/reset` | **`ROLE_PSYCHOLOGIST`** — javob+natijani tozalab qayta topshirishga ruxsat |
 | `DELETE /api/attempts/{id}` | **`ROLE_ADMIN`** — urinish + natijani butunlay o'chirish |
 
+`assignment` FK — **`ON DELETE SET NULL`**: biriktirish (`Assignment`) o'chirilsa
+urinish saqlanadi, `assignment_id` → `NULL` bo'ladi.
+
 **Bir marta qoidasi:** `AttemptStarter::start()` mavjud urinishni qaytaradi, shuning
 uchun talaba yakunlangan testni qayta topshira olmaydi. Faqat xodim `reset` (yoki
 admin `DELETE`) qilsa — talaba yana bir marta topshiradi. Talabaning o'zi

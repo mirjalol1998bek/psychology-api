@@ -22,3 +22,11 @@ Kategoriyani (metodikani) guruhga biriktirish + muddat.
 | `POST` / `PATCH` / `DELETE` | `ROLE_PSYCHOLOGIST` |
 
 Filtr: `category`, `studyGroup`, `isActive`.
+
+## O'chirish
+
+Guruhning ba'zi talabalari testni allaqachon topshirgan bo'lsa ham `DELETE`
+ishlaydi: `attempt.assignment_id` FK **`ON DELETE SET NULL`** — urinish va
+natija saqlanadi (talaba Natijalar'da ko'rishda davom etadi), faqat
+biriktirish bilan bog'liqlik uziladi. Urinishni ham o'chirish kerak bo'lsa —
+alohida `DELETE /api/attempts/{id}` (`ROLE_ADMIN`).

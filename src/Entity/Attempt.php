@@ -90,6 +90,7 @@ class Attempt implements CreatedAtSettableInterface, UpdatedAtSettableInterface
     private ?User $student = null;
 
     #[ORM\ManyToOne(targetEntity: Assignment::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['attempt:read'])]
     private ?Assignment $assignment = null;
 
