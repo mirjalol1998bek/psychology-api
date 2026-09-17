@@ -10,12 +10,18 @@ use ApiPlatform\State\ProviderInterface;
 use App\Component\User\CurrentUser;
 use App\Entity\AppointmentSlot;
 use App\Entity\User;
+use App\Enum\AppointmentStatus;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * ORM'ning standart CollectionProvider'ini o'raydi (filtr/paginatsiya
- * saqlanadi) va talabaga boshqa birovning band slotini ko'rsatganda
- * `student`/`title`/`room`'ni yashiradi — faqat "band" holati qoladi.
+ * saqlanadi) va talabaga:
+ *   - `cancelled` slotlarni butunlay chiqarib tashlaydi (psixologning ichki
+ *     holati, talabaga ahamiyatsiz);
+ *   - boshqa birovning band slotida `student`/`title`/`room`'ni yashiradi
+ *     (faqat "band" holati qoladi);
+ *   - `free` (bo'sh oraliq) slotda `title`/`room`'ni yashiradi (psixologning
+ *     shaxsiy yozuvi sir, faqat vaqt oralig'i ko'rinadi).
  * Nusxa (`clone`) ustida ishlaydi, asl (boshqaruvchi) obyektga tegmaydi —
  * hech narsa flush qilinmaydi.
  *
@@ -42,18 +48,22 @@ final readonly class AppointmentSlotCollectionProvider implements ProviderInterf
             return is_array($slots) ? $slots : iterator_to_array($slots);
         }
 
-        $masked = [];
+        $visible = [];
 
         foreach ($slots as $slot) {
-            $masked[] = $this->maskForViewer($slot, $viewer);
+            if ($slot->getStatus() === AppointmentStatus::Cancelled) {
+                continue;
+            }
+
+            $visible[] = $this->maskForViewer($slot, $viewer);
         }
 
-        return $masked;
+        return $visible;
     }
 
     private function maskForViewer(AppointmentSlot $slot, User $viewer): AppointmentSlot
     {
-        if ($slot->getStudent() === null || $slot->getStudent() === $viewer) {
+        if ($slot->getStatus() === AppointmentStatus::Booked && $slot->getStudent() === $viewer) {
             return $slot;
         }
 

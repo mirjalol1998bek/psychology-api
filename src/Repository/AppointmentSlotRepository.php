@@ -41,4 +41,23 @@ class AppointmentSlotRepository extends ServiceEntityRepository
 
         return (int) $count > 0;
     }
+
+    /** Berilgan 2 soatlik blokni to'liq qamrab oluvchi bo'sh (`free`) vaqt oralig'ini topadi. */
+    public function findCoveringFreeWindow(User $psychologist, DateTime $date, string $startTime, string $endTime): ?AppointmentSlot
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.psychologist = :psychologist')
+            ->andWhere('s.date = :date')
+            ->andWhere('s.status = :status')
+            ->andWhere('s.startTime <= :startTime')
+            ->andWhere('s.endTime >= :endTime')
+            ->setParameter('psychologist', $psychologist)
+            ->setParameter('date', $date, 'date')
+            ->setParameter('status', AppointmentStatus::Free->value)
+            ->setParameter('startTime', $startTime)
+            ->setParameter('endTime', $endTime)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

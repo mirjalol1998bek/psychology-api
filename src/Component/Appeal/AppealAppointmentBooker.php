@@ -6,6 +6,7 @@ namespace App\Component\Appeal;
 
 use App\Component\Appointment\AppointmentSlotFactory;
 use App\Component\Appointment\AppointmentSlotManager;
+use App\Component\Appointment\AvailabilityWindowConsumer;
 use App\Component\Notification\NotificationDispatcher;
 use App\Entity\Appeal;
 use App\Entity\AppointmentSlot;
@@ -15,10 +16,12 @@ use App\Repository\AppointmentSlotRepository;
 use DateTime;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * Murojaatdagi "qabulga yozilish" so'rovini haqiqiy AppointmentSlot'ga
- * aylantiradi. Davomiylik doim aniq 2 soat (uzunroq bo'lmaydi).
+ * aylantiradi. Davomiylik doim aniq 2 soat (uzunroq bo'lmaydi). Bron qilingan
+ * blok psixolog belgilagan `free` vaqt oralig'i ichida bo'lishi shart.
  */
 final class AppealAppointmentBooker
 {
@@ -28,6 +31,7 @@ final class AppealAppointmentBooker
         private readonly AppointmentSlotFactory $appointmentSlotFactory,
         private readonly AppointmentSlotManager $appointmentSlotManager,
         private readonly AppointmentSlotRepository $appointmentSlotRepository,
+        private readonly AvailabilityWindowConsumer $availabilityWindowConsumer,
         private readonly AppealManager $appealManager,
         private readonly NotificationDispatcher $notificationDispatcher,
     ) {
@@ -38,6 +42,12 @@ final class AppealAppointmentBooker
         $bookedDate = $this->parseDate($date);
         $this->assertValidTime($startTime);
         $endTime = $this->addDuration($startTime);
+
+        $window = $this->appointmentSlotRepository->findCoveringFreeWindow($psychologist, $bookedDate, $startTime, $endTime);
+
+        if ($window === null) {
+            throw new UnprocessableEntityHttpException('Bu vaqtda psixologning qabul soatlari belgilanmagan.');
+        }
 
         if ($this->appointmentSlotRepository->hasBookedOverlap($psychologist, $bookedDate, $startTime, $endTime) === true) {
             throw new ConflictHttpException('Bu vaqt allaqachon band.');
@@ -51,6 +61,7 @@ final class AppealAppointmentBooker
             $endTime,
         );
         $this->appointmentSlotManager->save($slot, true);
+        $this->availabilityWindowConsumer->consume($window, $startTime, $endTime);
 
         $this->linkAndAnswer($appeal, $slot, $psychologist);
         $this->notificationDispatcher->notifyStudentOnAppealAppointmentBooked($appeal);

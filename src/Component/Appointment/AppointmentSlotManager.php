@@ -9,6 +9,7 @@ use App\Entity\AppointmentSlot;
 
 /**
  * @method void save(AppointmentSlot $entity, bool $needToFlush = false)
+ * @method void remove(AppointmentSlot $entity, bool $needToFlush = false)
  */
 class AppointmentSlotManager extends AbstractManager
 {

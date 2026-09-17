@@ -34,11 +34,17 @@ qilinmaydi.
    bilan tasdiqlaydi (kerak bo'lsa sana/vaqtni o'zgartirib).
 3. `POST /api/appeals/{id}/book` — `AppealBookAppointmentAction` →
    `AppealAppointmentBooker`:
+   - Kiritilgan 2 soatlik blokni **to'liq qamrab oluvchi `free` slot**
+     (psixolog belgilagan bo'sh vaqt oralig'i) borligini tekshiradi — topilmasa
+     `422` ("bu vaqtda psixolog qabul soatlari yo'q").
    - Shu psixolog uchun kiritilgan sana/vaqtda **band emasligini** tekshiradi
      (bor bo'lsa `409`).
    - Yangi `AppointmentSlot` yaratadi: `student` = murojaat egasi,
      `status=booked`, `endTime = startTime + 2 soat` (**har doim aniq 2 soat —
      uzunroq bo'lmaydi**; masalan 10:00 → 12:00).
+   - Qamrab olgan `free` slotni band qilingan blokka moslab
+     qisqartiradi/bo'ladi (`AvailabilityWindowConsumer`) —
+     [`appointment-slot.md`](appointment-slot.md)ga qarang.
    - `appeal.appointmentSlot` shu slotga bog'lanadi; `reply` bo'sh bo'lsa
      avtomatik tasdiq matni yoziladi, `status=answered`.
    - Talabaga bildirishnoma (`NotificationType::AppealAppointmentBooked`).

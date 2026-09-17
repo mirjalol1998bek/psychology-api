@@ -24,6 +24,8 @@ use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * `student`/`title`/`room` boshqa talabaning band slotida yashirin —
@@ -198,5 +200,23 @@ class AppointmentSlot implements CreatedAtSettableInterface
         $this->room = $room;
 
         return $this;
+    }
+
+    #[Assert\Callback]
+    public function validate(ExecutionContextInterface $context): void
+    {
+        if ($this->status === AppointmentStatus::Free && $this->endTime === null) {
+            $context->buildViolation('Bo\'sh vaqt oralig\'i uchun tugash vaqti kiritilishi shart.')
+                ->atPath('endTime')
+                ->addViolation();
+
+            return;
+        }
+
+        if ($this->endTime !== null && $this->endTime <= $this->startTime) {
+            $context->buildViolation('Tugash vaqti boshlanish vaqtidan keyin bo\'lishi kerak.')
+                ->atPath('endTime')
+                ->addViolation();
+        }
     }
 }
