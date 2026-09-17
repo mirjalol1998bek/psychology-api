@@ -18,6 +18,7 @@ use App\Entity\Traits\CreatedAtAccessorsTrait;
 use App\Entity\Traits\UpdatedAtAccessorsTrait;
 use App\Enum\StudyLanguage;
 use App\Repository\QuizRepository;
+use App\State\QuizDeleteProcessor;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -32,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(normalizationContext: ['groups' => ['quiz:read', 'quiz:read:full']]),
         new Post(security: "is_granted('ROLE_PSYCHOLOGIST')"),
         new Patch(security: "is_granted('ROLE_PSYCHOLOGIST')"),
-        new Delete(security: "is_granted('ROLE_ADMIN')"),
+        new Delete(security: "is_granted('ROLE_ADMIN')", processor: QuizDeleteProcessor::class),
     ],
     normalizationContext: ['groups' => ['quiz:read']],
     denormalizationContext: ['groups' => ['quiz:write']],

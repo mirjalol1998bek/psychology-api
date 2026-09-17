@@ -22,7 +22,7 @@ Kategoriya ichidagi test — bitta til varianti.
 | `GET /api/quizzes` | auth |
 | `GET /api/quizzes/{id}` | auth — `quiz:read:full` (savollar + variantlar bilan) |
 | `POST`, `PATCH` | `ROLE_PSYCHOLOGIST` |
-| `DELETE` | `ROLE_ADMIN` |
+| `DELETE` | `ROLE_ADMIN` — `QuizDeleteProcessor`: shu quiz bo'yicha `Attempt` bo'lsa `409` (`Attempt.quiz` FK `onDelete` sozlanmagan — bo'lmasa xom `500` bo'lardi) |
 
 `QuizProvider::forCategoryAndLanguage()` — talaba tili bo'yicha, yo'q bo'lsa uz.
 
