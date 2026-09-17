@@ -83,6 +83,29 @@ final class NotificationDispatcher
         $this->notificationManager->save($notification, true);
     }
 
+    public function notifyStudentOnAppealAppointmentBooked(Appeal $appeal): void
+    {
+        $student = $appeal->getStudent();
+
+        if ($student === null) {
+            return;
+        }
+
+        $notification = $this->notificationFactory->create(
+            $student,
+            NotificationType::AppealAppointmentBooked,
+            'Qabulga yozildingiz',
+            sprintf(
+                '%s kuni soat %s dan %s gacha psixolog qabuliga yozildingiz.',
+                $appeal->getAppointmentDate(),
+                $appeal->getAppointmentStartTime(),
+                $appeal->getAppointmentEndTime(),
+            ),
+            '/appeals/' . $appeal->getId(),
+        );
+        $this->notificationManager->save($notification, true);
+    }
+
     /**
      * @return list<User>
      */

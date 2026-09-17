@@ -17,6 +17,7 @@ use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Traits\CreatedAtAccessorsTrait;
 use App\Enum\AppointmentStatus;
 use App\Repository\AppointmentSlotRepository;
+use App\State\AppointmentSlotCollectionProvider;
 use App\State\AppointmentSlotCreateProcessor;
 use DateTime;
 use DateTimeInterface;
@@ -24,10 +25,14 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
+/**
+ * `student`/`title`/`room` boshqa talabaning band slotida yashirin —
+ * AppointmentSlotCollectionProvider'da maxfiylik izohiga qarang.
+ */
 #[ApiResource(
     operations: [
-        new GetCollection(),
-        new Get(),
+        new GetCollection(provider: AppointmentSlotCollectionProvider::class),
+        new Get(security: "object.getStudent() == user || object.getStudent() == null || is_granted('ROLE_PSYCHOLOGIST')"),
         new Post(
             security: "is_granted('ROLE_PSYCHOLOGIST')",
             processor: AppointmentSlotCreateProcessor::class,

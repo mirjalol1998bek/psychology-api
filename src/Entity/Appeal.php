@@ -79,6 +79,18 @@ class Appeal implements CreatedAtSettableInterface
     #[Groups(['appeal:read', 'appeal:create'])]
     private bool $wantsAppointment = false;
 
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['appeal:read', 'appeal:create'])]
+    private ?DateTimeInterface $preferredDate = null;
+
+    #[ORM\Column(type: Types::STRING, length: 5, nullable: true)]
+    #[Groups(['appeal:read', 'appeal:create'])]
+    private ?string $preferredTime = null;
+
+    #[ORM\OneToOne(targetEntity: AppointmentSlot::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?AppointmentSlot $appointmentSlot = null;
+
     #[ORM\Column(type: Types::STRING, length: 16, enumType: AppealStatus::class)]
     #[Groups(['appeal:read'])]
     private AppealStatus $status = AppealStatus::Open;
@@ -164,6 +176,42 @@ class Appeal implements CreatedAtSettableInterface
         return $this;
     }
 
+    public function getPreferredDate(): ?DateTimeInterface
+    {
+        return $this->preferredDate;
+    }
+
+    public function setPreferredDate(?DateTimeInterface $preferredDate): self
+    {
+        $this->preferredDate = $preferredDate;
+
+        return $this;
+    }
+
+    public function getPreferredTime(): ?string
+    {
+        return $this->preferredTime;
+    }
+
+    public function setPreferredTime(?string $preferredTime): self
+    {
+        $this->preferredTime = $preferredTime;
+
+        return $this;
+    }
+
+    public function getAppointmentSlot(): ?AppointmentSlot
+    {
+        return $this->appointmentSlot;
+    }
+
+    public function setAppointmentSlot(?AppointmentSlot $appointmentSlot): self
+    {
+        $this->appointmentSlot = $appointmentSlot;
+
+        return $this;
+    }
+
     public function getStatus(): AppealStatus
     {
         return $this->status;
@@ -241,5 +289,29 @@ class Appeal implements CreatedAtSettableInterface
     public function getRepliedByName(): ?string
     {
         return $this->repliedBy?->getFullName();
+    }
+
+    #[Groups(['appeal:read'])]
+    public function getAppointmentDate(): ?string
+    {
+        return $this->appointmentSlot?->getDate()->format('Y-m-d');
+    }
+
+    #[Groups(['appeal:read'])]
+    public function getAppointmentStartTime(): ?string
+    {
+        return $this->appointmentSlot?->getStartTime();
+    }
+
+    #[Groups(['appeal:read'])]
+    public function getAppointmentEndTime(): ?string
+    {
+        return $this->appointmentSlot?->getEndTime();
+    }
+
+    #[Groups(['appeal:read'])]
+    public function getAppointmentStatus(): ?string
+    {
+        return $this->appointmentSlot?->getStatus()->value;
     }
 }
