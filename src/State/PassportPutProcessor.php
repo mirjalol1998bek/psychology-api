@@ -38,15 +38,30 @@ final class PassportPutProcessor implements ProcessorInterface
         return $passport;
     }
 
+    /** `personalCode` bu yerda yo'q — u passport:write guruhida emas, talaba PUT bilan yoza olmaydi. */
     private function copyFields(StudentPassport $from, StudentPassport $to): void
     {
         $to->setBirthDate($from->getBirthDate());
-        $to->setCurrentAddress($from->getCurrentAddress());
-        $to->setPhone($from->getPhone());
+        $to->setGender($from->getGender());
+        $to->setPermanentAddress($from->getPermanentAddress());
+        $to->setLivingArrangement($from->getLivingArrangement());
+        $to->setCommuteMinutes($from->getCommuteMinutes());
         $to->setFamilyStatus($from->getFamilyStatus());
-        $to->setLivingEnvironment($from->getLivingEnvironment());
-        $to->setTalents($from->getTalents());
-        $to->setParentsInfo($from->getParentsInfo());
-        $to->setTutorInfo($from->getTutorInfo());
+        $to->setFamilyType($from->getFamilyType());
+        $to->setSiblingsCount($from->getSiblingsCount());
+        $to->setBirthOrder($from->getBirthOrder());
+        $to->setFatherInfo($from->getFatherInfo());
+        $to->setMotherInfo($from->getMotherInfo());
+        $to->setFinancialStatus($from->getFinancialStatus());
+        $to->setEducationForm($from->getEducationForm());
+        $to->setWorkStatus($from->getWorkStatus());
+        $to->setPriorEducation($from->getPriorEducation());
+        $to->setGpaScore($from->getGpaScore());
+        $to->setLanguageLevel($from->getLanguageLevel());
+        $to->setExtracurricular($from->getExtracurricular());
+        $to->setLeisureActivity($from->getLeisureActivity());
+        $to->setHealthLimitations($from->getHealthLimitations());
+        $to->setPriorPsychologistVisit($from->getPriorPsychologistVisit());
+        $to->setCurrentConcern($from->getCurrentConcern());
     }
 }

@@ -12,8 +12,13 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
 use App\Entity\Traits\UpdatedAtAccessorsTrait;
+use App\Enum\EducationForm;
 use App\Enum\FamilyStatus;
-use App\Enum\LivingEnvironment;
+use App\Enum\FamilyType;
+use App\Enum\FinancialStatus;
+use App\Enum\Gender;
+use App\Enum\LivingArrangement;
+use App\Enum\WorkStatus;
 use App\Repository\StudentPassportRepository;
 use App\State\CurrentUserPassportProvider;
 use App\State\PassportPutProcessor;
@@ -22,6 +27,11 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
+/**
+ * Ijtimoiy-psixologik anketa — har talabada bitta, o'zi to'ldiradi (FISH,
+ * fakultet, guruh HEMIS'dan avtomatik — bu yerda saqlanmaydi). `personalCode`
+ * bundan mustasno — psixolog beradi, talaba formasida ko'rinmaydi/tahrirlanmaydi.
+ */
 #[ApiResource(
     operations: [
         new Get(
@@ -63,37 +73,99 @@ class StudentPassport implements UpdatedAtSettableInterface
     #[Groups(['passport:read:staff'])]
     private ?User $student = null;
 
+    /** Psixolog beradi — talaba formasida yo'q. */
+    #[ORM\Column(type: Types::STRING, length: 32, nullable: true)]
+    #[Groups(['passport:read:staff'])]
+    private ?string $personalCode = null;
+
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     #[Groups(['passport:read', 'passport:write'])]
     private ?DateTimeInterface $birthDate = null;
 
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true, enumType: Gender::class)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?Gender $gender = null;
+
     #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
     #[Groups(['passport:read', 'passport:write'])]
-    private ?string $currentAddress = null;
+    private ?string $permanentAddress = null;
 
-    #[ORM\Column(type: Types::STRING, length: 32, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true, enumType: LivingArrangement::class)]
     #[Groups(['passport:read', 'passport:write'])]
-    private ?string $phone = null;
+    private ?LivingArrangement $livingArrangement = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?int $commuteMinutes = null;
 
     #[ORM\Column(type: Types::STRING, length: 16, nullable: true, enumType: FamilyStatus::class)]
     #[Groups(['passport:read', 'passport:write'])]
     private ?FamilyStatus $familyStatus = null;
 
-    #[ORM\Column(type: Types::STRING, length: 16, nullable: true, enumType: LivingEnvironment::class)]
+    #[ORM\Column(type: Types::STRING, length: 24, nullable: true, enumType: FamilyType::class)]
     #[Groups(['passport:read', 'passport:write'])]
-    private ?LivingEnvironment $livingEnvironment = null;
+    private ?FamilyType $familyType = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?int $siblingsCount = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?int $birthOrder = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?string $fatherInfo = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?string $motherInfo = null;
+
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true, enumType: FinancialStatus::class)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?FinancialStatus $financialStatus = null;
+
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true, enumType: EducationForm::class)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?EducationForm $educationForm = null;
+
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true, enumType: WorkStatus::class)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?WorkStatus $workStatus = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?string $priorEducation = null;
+
+    #[ORM\Column(type: Types::STRING, length: 16, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?string $gpaScore = null;
+
+    #[ORM\Column(type: Types::STRING, length: 128, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?string $languageLevel = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['passport:read', 'passport:write'])]
-    private ?string $talents = null;
+    private ?string $extracurricular = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['passport:read', 'passport:write'])]
-    private ?string $parentsInfo = null;
+    private ?string $leisureActivity = null;
+
+    /** Ixtiyoriy — anketaning o'zida shunday belgilangan. */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?string $healthLimitations = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    #[Groups(['passport:read', 'passport:write'])]
+    private ?bool $priorPsychologistVisit = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['passport:read', 'passport:write'])]
-    private ?string $tutorInfo = null;
+    private ?string $currentConcern = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['passport:read'])]
@@ -116,6 +188,18 @@ class StudentPassport implements UpdatedAtSettableInterface
         return $this;
     }
 
+    public function getPersonalCode(): ?string
+    {
+        return $this->personalCode;
+    }
+
+    public function setPersonalCode(?string $personalCode): self
+    {
+        $this->personalCode = $personalCode;
+
+        return $this;
+    }
+
     public function getBirthDate(): ?DateTimeInterface
     {
         return $this->birthDate;
@@ -128,26 +212,50 @@ class StudentPassport implements UpdatedAtSettableInterface
         return $this;
     }
 
-    public function getCurrentAddress(): ?string
+    public function getGender(): ?Gender
     {
-        return $this->currentAddress;
+        return $this->gender;
     }
 
-    public function setCurrentAddress(?string $currentAddress): self
+    public function setGender(?Gender $gender): self
     {
-        $this->currentAddress = $currentAddress;
+        $this->gender = $gender;
 
         return $this;
     }
 
-    public function getPhone(): ?string
+    public function getPermanentAddress(): ?string
     {
-        return $this->phone;
+        return $this->permanentAddress;
     }
 
-    public function setPhone(?string $phone): self
+    public function setPermanentAddress(?string $permanentAddress): self
     {
-        $this->phone = $phone;
+        $this->permanentAddress = $permanentAddress;
+
+        return $this;
+    }
+
+    public function getLivingArrangement(): ?LivingArrangement
+    {
+        return $this->livingArrangement;
+    }
+
+    public function setLivingArrangement(?LivingArrangement $livingArrangement): self
+    {
+        $this->livingArrangement = $livingArrangement;
+
+        return $this;
+    }
+
+    public function getCommuteMinutes(): ?int
+    {
+        return $this->commuteMinutes;
+    }
+
+    public function setCommuteMinutes(?int $commuteMinutes): self
+    {
+        $this->commuteMinutes = $commuteMinutes;
 
         return $this;
     }
@@ -164,50 +272,194 @@ class StudentPassport implements UpdatedAtSettableInterface
         return $this;
     }
 
-    public function getLivingEnvironment(): ?LivingEnvironment
+    public function getFamilyType(): ?FamilyType
     {
-        return $this->livingEnvironment;
+        return $this->familyType;
     }
 
-    public function setLivingEnvironment(?LivingEnvironment $livingEnvironment): self
+    public function setFamilyType(?FamilyType $familyType): self
     {
-        $this->livingEnvironment = $livingEnvironment;
+        $this->familyType = $familyType;
 
         return $this;
     }
 
-    public function getTalents(): ?string
+    public function getSiblingsCount(): ?int
     {
-        return $this->talents;
+        return $this->siblingsCount;
     }
 
-    public function setTalents(?string $talents): self
+    public function setSiblingsCount(?int $siblingsCount): self
     {
-        $this->talents = $talents;
+        $this->siblingsCount = $siblingsCount;
 
         return $this;
     }
 
-    public function getParentsInfo(): ?string
+    public function getBirthOrder(): ?int
     {
-        return $this->parentsInfo;
+        return $this->birthOrder;
     }
 
-    public function setParentsInfo(?string $parentsInfo): self
+    public function setBirthOrder(?int $birthOrder): self
     {
-        $this->parentsInfo = $parentsInfo;
+        $this->birthOrder = $birthOrder;
 
         return $this;
     }
 
-    public function getTutorInfo(): ?string
+    public function getFatherInfo(): ?string
     {
-        return $this->tutorInfo;
+        return $this->fatherInfo;
     }
 
-    public function setTutorInfo(?string $tutorInfo): self
+    public function setFatherInfo(?string $fatherInfo): self
     {
-        $this->tutorInfo = $tutorInfo;
+        $this->fatherInfo = $fatherInfo;
+
+        return $this;
+    }
+
+    public function getMotherInfo(): ?string
+    {
+        return $this->motherInfo;
+    }
+
+    public function setMotherInfo(?string $motherInfo): self
+    {
+        $this->motherInfo = $motherInfo;
+
+        return $this;
+    }
+
+    public function getFinancialStatus(): ?FinancialStatus
+    {
+        return $this->financialStatus;
+    }
+
+    public function setFinancialStatus(?FinancialStatus $financialStatus): self
+    {
+        $this->financialStatus = $financialStatus;
+
+        return $this;
+    }
+
+    public function getEducationForm(): ?EducationForm
+    {
+        return $this->educationForm;
+    }
+
+    public function setEducationForm(?EducationForm $educationForm): self
+    {
+        $this->educationForm = $educationForm;
+
+        return $this;
+    }
+
+    public function getWorkStatus(): ?WorkStatus
+    {
+        return $this->workStatus;
+    }
+
+    public function setWorkStatus(?WorkStatus $workStatus): self
+    {
+        $this->workStatus = $workStatus;
+
+        return $this;
+    }
+
+    public function getPriorEducation(): ?string
+    {
+        return $this->priorEducation;
+    }
+
+    public function setPriorEducation(?string $priorEducation): self
+    {
+        $this->priorEducation = $priorEducation;
+
+        return $this;
+    }
+
+    public function getGpaScore(): ?string
+    {
+        return $this->gpaScore;
+    }
+
+    public function setGpaScore(?string $gpaScore): self
+    {
+        $this->gpaScore = $gpaScore;
+
+        return $this;
+    }
+
+    public function getLanguageLevel(): ?string
+    {
+        return $this->languageLevel;
+    }
+
+    public function setLanguageLevel(?string $languageLevel): self
+    {
+        $this->languageLevel = $languageLevel;
+
+        return $this;
+    }
+
+    public function getExtracurricular(): ?string
+    {
+        return $this->extracurricular;
+    }
+
+    public function setExtracurricular(?string $extracurricular): self
+    {
+        $this->extracurricular = $extracurricular;
+
+        return $this;
+    }
+
+    public function getLeisureActivity(): ?string
+    {
+        return $this->leisureActivity;
+    }
+
+    public function setLeisureActivity(?string $leisureActivity): self
+    {
+        $this->leisureActivity = $leisureActivity;
+
+        return $this;
+    }
+
+    public function getHealthLimitations(): ?string
+    {
+        return $this->healthLimitations;
+    }
+
+    public function setHealthLimitations(?string $healthLimitations): self
+    {
+        $this->healthLimitations = $healthLimitations;
+
+        return $this;
+    }
+
+    public function getPriorPsychologistVisit(): ?bool
+    {
+        return $this->priorPsychologistVisit;
+    }
+
+    public function setPriorPsychologistVisit(?bool $priorPsychologistVisit): self
+    {
+        $this->priorPsychologistVisit = $priorPsychologistVisit;
+
+        return $this;
+    }
+
+    public function getCurrentConcern(): ?string
+    {
+        return $this->currentConcern;
+    }
+
+    public function setCurrentConcern(?string $currentConcern): self
+    {
+        $this->currentConcern = $currentConcern;
 
         return $this;
     }
@@ -230,6 +482,7 @@ class StudentPassport implements UpdatedAtSettableInterface
         return $this->student?->getFullName();
     }
 
+    /** Sog'liq cheklovi (healthLimitations) — anketada aniq ixtiyoriy, hisobga kirmaydi. */
     #[Groups(['passport:read'])]
     public function getCompleteness(): int
     {
@@ -241,7 +494,7 @@ class StudentPassport implements UpdatedAtSettableInterface
             }
         }
 
-        return (int) round($filled / 7 * 100);
+        return (int) round($filled / count($this->requiredValues()) * 100);
     }
 
     /**
@@ -251,12 +504,26 @@ class StudentPassport implements UpdatedAtSettableInterface
     {
         return [
             $this->birthDate,
-            $this->currentAddress,
-            $this->phone,
+            $this->gender,
+            $this->permanentAddress,
+            $this->livingArrangement,
+            $this->commuteMinutes,
             $this->familyStatus,
-            $this->livingEnvironment,
-            $this->parentsInfo,
-            $this->tutorInfo,
+            $this->familyType,
+            $this->siblingsCount,
+            $this->birthOrder,
+            $this->fatherInfo,
+            $this->motherInfo,
+            $this->financialStatus,
+            $this->educationForm,
+            $this->workStatus,
+            $this->priorEducation,
+            $this->gpaScore,
+            $this->languageLevel,
+            $this->extracurricular,
+            $this->leisureActivity,
+            $this->priorPsychologistVisit,
+            $this->currentConcern,
         ];
     }
 }
