@@ -4,7 +4,7 @@ Fakultet (HEMIS'dan yoki admin qo'lda).
 
 | Maydon | Tip | Izoh |
 |---|---|---|
-| `name` | string | |
+| `name` | string | `user:read` guruhida ham — `User`/`StudyGroup` ichida ko'rinishi uchun ([`user.md`](user.md)) |
 | `externalId` | ?string, unikal | HEMIS ID |
 | `groups` | OneToMany `StudyGroup` (mappedBy `faculty`) | |
 | audit | `createdAt`, `updatedAt` | |

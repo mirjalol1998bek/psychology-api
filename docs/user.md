@@ -23,6 +23,12 @@ Talaba / psixolog / admin. Skeletdagi `User` **kengaytirilgan** (qayta yozilmaga
 `getStudyLanguage()` (guruhdan meros), `getFaculty()` (guruh → fakultet),
 `getPrimaryRole(): RoleEnum`, `hasRole(RoleEnum): bool`.
 
+`Faculty::name`/`id`'da `user:read` guruhi bor — shu tufayli `User`
+normalize qilinganda ichma-ich `faculty` (va `studyGroup.faculty`) to'liq
+`{id, name}` obyekti sifatida keladi, sof IRI emas (API Platform: nested
+resource'ning hech bir maydoni joriy guruh filtridan o'tmasa, IRI'ga
+tushib qoladi). Shu orqali front `about_me`dan fakultet nomini oladi.
+
 ## API
 
 | Operatsiya | Ruxsat |

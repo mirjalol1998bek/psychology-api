@@ -50,12 +50,12 @@ class Faculty implements CreatedAtSettableInterface, UpdatedAtSettableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
-    #[Groups(['faculty:read', 'study-group:read'])]
+    #[Groups(['faculty:read', 'study-group:read', 'user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
     #[Assert\NotBlank]
-    #[Groups(['faculty:read', 'faculty:write', 'study-group:read'])]
+    #[Groups(['faculty:read', 'faculty:write', 'study-group:read', 'user:read'])]
     private string $name = '';
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
