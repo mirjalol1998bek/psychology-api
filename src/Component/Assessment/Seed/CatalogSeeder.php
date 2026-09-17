@@ -25,6 +25,7 @@ final class CatalogSeeder
         private readonly TemperamentRuData $temperamentRu,
         private readonly PsychogeometricData $psychogeometric,
         private readonly ZungData $zung,
+        private readonly Ipm20Data $ipm20,
     ) {
     }
 
@@ -38,6 +39,7 @@ final class CatalogSeeder
         $created[] = $this->seedTemperamentRu();
         $created[] = $this->seedPsychogeometric();
         $created[] = $this->seedZung();
+        $created[] = $this->seedIpm20();
 
         return array_values(array_filter($created, static fn (?string $name): bool => $name !== null));
     }
@@ -198,6 +200,84 @@ final class CatalogSeeder
     {
         foreach ($this->zung->interpretations() as $key => $data) {
             $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text']);
+        }
+    }
+
+    private function seedIpm20(): ?string
+    {
+        $name = 'IPM-20: Universitetga ijtimoiy-psixologik moslashuv so\'rovnomasi';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::ScoreScaleSubscale, 5);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillIpm20Questions($quizUz, $this->ipm20->questionsUz(), Ipm20Data::OPTIONS_UZ);
+        $quizRu = $this->factory->createQuiz(
+            $category,
+            'ОСПА-20: Опросник социально-психологической адаптации к университету',
+            StudyLanguage::Russian,
+        );
+        $this->fillIpm20Questions($quizRu, $this->ipm20->questionsRu(), Ipm20Data::OPTIONS_RU);
+
+        $this->addIpm20Ranges($category);
+        $this->addIpm20Interpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<array{text: string, reversed: bool, subscale: string}> $questions
+     * @param list<string>                                                $options
+     */
+    private function fillIpm20Questions(Quiz $quiz, array $questions, array $options): void
+    {
+        $position = 0;
+
+        foreach ($questions as $questionData) {
+            $position++;
+            $question = $this->factory->createQuestion($quiz, QuestionType::Scale, $questionData['text'], $position, $questionData['subscale']);
+            $question->setIsReversed($questionData['reversed']);
+            $score = 0;
+
+            foreach ($options as $label) {
+                $score++;
+                $this->factory->createOption($question, $label, $score, null);
+            }
+
+            $quiz->addQuestion($question);
+        }
+    }
+
+    private function addIpm20Ranges(Category $category): void
+    {
+        foreach ($this->ipm20->overallRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key']);
+        }
+
+        foreach ($this->ipm20->subscaleRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], '*');
+        }
+    }
+
+    private function addIpm20Interpretations(Category $category): void
+    {
+        foreach ($this->ipm20->overallInterpretationsUz() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text']);
+        }
+
+        foreach ($this->ipm20->overallInterpretationsRu() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text']);
+        }
+
+        foreach ($this->ipm20->subscaleInterpretationsUz() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text'], '*');
+        }
+
+        foreach ($this->ipm20->subscaleInterpretationsRu() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text'], '*');
         }
     }
 

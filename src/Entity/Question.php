@@ -68,6 +68,11 @@ class Question
     #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
     private bool $isReversed = false;
 
+    /** `SCORE_SCALE` metodikada subshkala nomi (masalan "Akademik moslashuv") — bo'sh = faqat umumiy ballga kiradi. */
+    #[ORM\Column(type: Types::STRING, length: 128, options: ['default' => ''])]
+    #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
+    private string $subscaleKey = '';
+
     #[ORM\OneToMany(mappedBy: 'question', targetEntity: AnswerOption::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
     #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
@@ -152,6 +157,18 @@ class Question
     public function setIsReversed(bool $isReversed): self
     {
         $this->isReversed = $isReversed;
+
+        return $this;
+    }
+
+    public function getSubscaleKey(): string
+    {
+        return $this->subscaleKey;
+    }
+
+    public function setSubscaleKey(string $subscaleKey): self
+    {
+        $this->subscaleKey = $subscaleKey;
 
         return $this;
     }

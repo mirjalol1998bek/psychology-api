@@ -41,13 +41,14 @@ final class AssessmentFactory
         return $quiz;
     }
 
-    public function createQuestion(Quiz $quiz, QuestionType $type, string $text, int $position): Question
+    public function createQuestion(Quiz $quiz, QuestionType $type, string $text, int $position, string $subscaleKey = ''): Question
     {
         $question = new Question();
         $question->setQuiz($quiz);
         $question->setType($type);
         $question->setText($text);
         $question->setPosition($position);
+        $question->setSubscaleKey($subscaleKey);
 
         return $question;
     }
@@ -65,12 +66,13 @@ final class AssessmentFactory
         return $option;
     }
 
-    public function createScoreRange(Category $category, int $min, int $max, string $resultKey): ScoreRange
+    public function createScoreRange(Category $category, int $min, int $max, string $resultKey, string $subscaleKey = ''): ScoreRange
     {
         $range = new ScoreRange();
         $range->setMinScore($min);
         $range->setMaxScore($max);
         $range->setResultKey($resultKey);
+        $range->setSubscaleKey($subscaleKey);
         $category->addScoreRange($range);
 
         return $range;
@@ -82,12 +84,14 @@ final class AssessmentFactory
         StudyLanguage $language,
         ?string $title,
         string $text,
+        string $subscaleKey = '',
     ): AssessmentInterpretation {
         $interpretation = new AssessmentInterpretation();
         $interpretation->setResultKey($resultKey);
         $interpretation->setStudyLanguage($language);
         $interpretation->setTitle($title);
         $interpretation->setText($text);
+        $interpretation->setSubscaleKey($subscaleKey);
         $category->addInterpretation($interpretation);
 
         return $interpretation;

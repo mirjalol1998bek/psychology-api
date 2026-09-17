@@ -65,6 +65,7 @@ final class AttemptSubmitter
     {
         return $this->interpretationRepository->findOneBy([
             'category' => $attempt->getQuiz()->getCategory(),
+            'subscaleKey' => '',
             'resultKey' => $resultKey,
             'studyLanguage' => $attempt->getStudyLanguage(),
         ]);

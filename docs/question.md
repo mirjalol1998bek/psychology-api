@@ -10,6 +10,7 @@ Quiz ichidagi bitta savol.
 | `imageUrl` | ?string | |
 | `position` | smallint | |
 | `isReversed` | bool = false | `getIsReversed()` — `SCORE_SCALE` da teskari ballash |
+| `subscaleKey` | string = `''` | `SCORE_SCALE` metodikada subshkala nomi (masalan "Akademik moslashuv" — IPM-20). Bo'sh = faqat umumiy ballga kiradi. [`assessment-scoring.md`](assessment-scoring.md) |
 | `options` | OneToMany `AnswerOption`, cascade persist+remove, orphanRemoval, `OrderBy position` | |
 
 `addOption()`, `hasOption(AnswerOption): bool`.

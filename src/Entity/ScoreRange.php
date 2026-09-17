@@ -62,6 +62,11 @@ class ScoreRange
     #[Groups(['category:read', 'category:write', 'score-range:read', 'score-range:write'])]
     private ?StudyLanguage $studyLanguage = null;
 
+    /** `''` = umumiy ball uchun oraliq; `'*'` = subshkala ballari uchun (nomiga bog'liq bo'lmagan) umumiy oraliq. */
+    #[ORM\Column(type: Types::STRING, length: 8, options: ['default' => ''])]
+    #[Groups(['category:read', 'category:write', 'score-range:read', 'score-range:write'])]
+    private string $subscaleKey = '';
+
     public function getId(): ?int
     {
         return $this->id;
@@ -123,6 +128,18 @@ class ScoreRange
     public function setStudyLanguage(?StudyLanguage $studyLanguage): self
     {
         $this->studyLanguage = $studyLanguage;
+
+        return $this;
+    }
+
+    public function getSubscaleKey(): string
+    {
+        return $this->subscaleKey;
+    }
+
+    public function setSubscaleKey(string $subscaleKey): self
+    {
+        $this->subscaleKey = $subscaleKey;
 
         return $this;
     }
