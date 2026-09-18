@@ -6,6 +6,7 @@ namespace App\Component\Assessment\Report;
 
 use App\Enum\InstrumentType;
 use App\Repository\AssessmentResultRepository;
+use App\Repository\CategoryRepository;
 use App\Repository\FacultyRepository;
 use App\Repository\UserRepository;
 use BackedEnum;
@@ -16,6 +17,7 @@ final class StatisticsReporter
         private readonly FacultyRepository $facultyRepository,
         private readonly UserRepository $userRepository,
         private readonly AssessmentResultRepository $resultRepository,
+        private readonly CategoryRepository $categoryRepository,
     ) {
     }
 
@@ -24,6 +26,7 @@ final class StatisticsReporter
      */
     public function overview(): array
     {
+        $scaleAlgos = $this->scaleAlgos();
         $faculties = [];
         $totalStudents = 0;
         $totalWithResults = 0;
@@ -44,7 +47,7 @@ final class StatisticsReporter
                 'withResults' => $studentsWithResults,
                 'figures' => $this->countByKey($rows, 'FIGURE_CHOICE'),
                 'temperaments' => $this->mergeTemperaments($rows),
-                'scale' => $this->scaleSplit($rows, $students),
+                'scales' => $this->scaleBreakdown($rows, $students, $scaleAlgos),
             ];
         }
 
@@ -52,6 +55,28 @@ final class StatisticsReporter
             'totals' => ['students' => $totalStudents, 'withResults' => $totalWithResults],
             'faculties' => $faculties,
         ];
+    }
+
+    /**
+     * Har bir `SCORE_SCALE*` oilasidagi metodika (IPM-20, OKM-20, EHS-20, ...)
+     * — hozir mavjud Category'lardan olinadi, yangi metodika qo'shilganda
+     * bu yerga qo'l tegmasdan avtomatik chiqadi.
+     *
+     * @return list<string>
+     */
+    private function scaleAlgos(): array
+    {
+        $algos = [];
+
+        foreach ($this->categoryRepository->findAll() as $category) {
+            $value = $category->getInstrumentType()->value;
+
+            if (str_starts_with($value, 'SCORE_SCALE') && !in_array($value, $algos, true)) {
+                $algos[] = $value;
+            }
+        }
+
+        return $algos;
     }
 
     /**
@@ -124,19 +149,26 @@ final class StatisticsReporter
 
     /**
      * @param list<array{studentId: int, algo: string, resultKey: string}> $rows
-     * @return array{withResult: int, withoutResult: int}
+     * @param list<string>                                                 $algos
+     * @return list<array{algo: string, withResult: int, withoutResult: int}>
      */
-    private function scaleSplit(array $rows, int $students): array
+    private function scaleBreakdown(array $rows, int $students, array $algos): array
     {
-        $withResult = 0;
+        $counts = array_fill_keys($algos, 0);
 
         foreach ($rows as $row) {
-            if ($row['algo'] === 'SCORE_SCALE') {
-                $withResult++;
+            if (array_key_exists($row['algo'], $counts)) {
+                $counts[$row['algo']]++;
             }
         }
 
-        return ['withResult' => $withResult, 'withoutResult' => max(0, $students - $withResult)];
+        $out = [];
+
+        foreach ($counts as $algo => $withResult) {
+            $out[] = ['algo' => $algo, 'withResult' => $withResult, 'withoutResult' => max(0, $students - $withResult)];
+        }
+
+        return $out;
     }
 
     /**
