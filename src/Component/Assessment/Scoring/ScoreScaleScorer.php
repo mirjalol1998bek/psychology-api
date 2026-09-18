@@ -14,16 +14,27 @@ use App\Enum\InstrumentType;
 /**
  * Ba'zi SCORE_SCALE metodikalar (masalan IPM-20) savollarni nomlangan
  * subshkalalarga guruhlaydi (`Question.subscaleKey`) — har biri o'z
- * ball oralig'i (`ScoreRange.subscaleKey = '*'`, nomiga bog'liq emas) va
- * talqini (`AssessmentInterpretation.subscaleKey = '*'`) bilan. Subshkalasi
- * yo'q metodikalarda (Zung) bu guruhlash bo'sh qoladi — eski xatti-harakat
+ * ball oralig'i va talqini bilan. Qaysi jadval ishlatilishi
+ * `Question.subscaleRangeKey` bilan belgilanadi: standart `'*'` — barcha
+ * subshkalalar bitta umumiy jadvaldan foydalanadi (IPM-20, OKM-20: hammasi
+ * 5-25). Subshkalalar TENG BO'LMAGAN o'lchamda bo'lsa (EHS-20: A/B 7-35,
+ * C 6-30) — har guruh o'z maxsus kalitiga ega bo'ladi. Subshkalasi yo'q
+ * metodikalarda (Zung) bu guruhlash bo'sh qoladi — eski xatti-harakat
  * o'zgarmaydi.
+ *
+ * `Question.overallSign` (+1/-1) — UMUMIY ball qo'shiladigan ishora
+ * (masalan OKM-20: IMI = (A+B) − (C+D) — C/D savollari −1 bilan qo'shiladi;
+ * EHS-20: ERI = (A+B) − C). Subshkalaning o'z ballini o'zgartirmaydi,
+ * standart +1.
  */
 final class ScoreScaleScorer implements ScorerInterface
 {
     public function supports(InstrumentType $instrumentType): bool
     {
-        return $instrumentType === InstrumentType::ScoreScale || $instrumentType === InstrumentType::ScoreScaleSubscale;
+        return $instrumentType === InstrumentType::ScoreScale
+            || $instrumentType === InstrumentType::ScoreScaleSubscale
+            || $instrumentType === InstrumentType::ScoreScaleMotivation
+            || $instrumentType === InstrumentType::ScoreScaleEmotional;
     }
 
     public function score(Attempt $attempt): ScoredResult
@@ -44,8 +55,11 @@ final class ScoreScaleScorer implements ScorerInterface
         $total = 0;
 
         foreach ($attempt->getAnswers() as $answer) {
+            $question = $answer->getQuestion();
+            $sign = $question?->getOverallSign() ?? 1;
+
             foreach ($answer->getSelectedOptions() as $option) {
-                $total += $this->pointsFor($answer->getQuestion(), $option->getScore());
+                $total += $sign * $this->pointsFor($question, $option->getScore());
             }
         }
 
@@ -53,7 +67,7 @@ final class ScoreScaleScorer implements ScorerInterface
     }
 
     /**
-     * @return array<string, int>
+     * @return array<string, array{total: int, rangeKey: string}>
      */
     private function subscaleTotals(Attempt $attempt): array
     {
@@ -67,8 +81,12 @@ final class ScoreScaleScorer implements ScorerInterface
                 continue;
             }
 
+            if (!isset($totals[$subscaleKey])) {
+                $totals[$subscaleKey] = ['total' => 0, 'rangeKey' => $question?->getSubscaleRangeKey() ?? '*'];
+            }
+
             foreach ($answer->getSelectedOptions() as $option) {
-                $totals[$subscaleKey] = ($totals[$subscaleKey] ?? 0) + $this->pointsFor($question, $option->getScore());
+                $totals[$subscaleKey]['total'] += $this->pointsFor($question, $option->getScore());
             }
         }
 
@@ -76,7 +94,7 @@ final class ScoreScaleScorer implements ScorerInterface
     }
 
     /**
-     * @param array<string, int> $subscaleTotals
+     * @param array<string, array{total: int, rangeKey: string}> $subscaleTotals
      *
      * @return list<BreakdownItem>
      */
@@ -84,12 +102,12 @@ final class ScoreScaleScorer implements ScorerInterface
     {
         $items = [];
 
-        foreach ($subscaleTotals as $subscaleKey => $subscaleTotal) {
-            $range = $this->matchRange($attempt, $subscaleTotal, '*');
-            $interpretation = $this->findSubscaleInterpretation($attempt, $range->getResultKey());
+        foreach ($subscaleTotals as $subscaleKey => $data) {
+            $range = $this->matchRange($attempt, $data['total'], $data['rangeKey']);
+            $interpretation = $this->findSubscaleInterpretation($attempt, $data['rangeKey'], $range->getResultKey());
             $items[] = new BreakdownItem(
                 $subscaleKey,
-                $subscaleTotal,
+                $data['total'],
                 $range->getResultKey(),
                 $interpretation?->getTitle(),
                 $interpretation?->getText(),
@@ -99,12 +117,12 @@ final class ScoreScaleScorer implements ScorerInterface
         return $items;
     }
 
-    private function findSubscaleInterpretation(Attempt $attempt, string $resultKey): ?AssessmentInterpretation
+    private function findSubscaleInterpretation(Attempt $attempt, string $rangeKey, string $resultKey): ?AssessmentInterpretation
     {
         $language = $attempt->getStudyLanguage();
 
         foreach ($attempt->getQuiz()->getCategory()->getInterpretations() as $interpretation) {
-            $matches = $interpretation->getSubscaleKey() === '*'
+            $matches = $interpretation->getSubscaleKey() === $rangeKey
                 && $interpretation->getResultKey() === $resultKey
                 && $interpretation->getStudyLanguage() === $language;
 

@@ -62,8 +62,10 @@ class ScoreRange
     #[Groups(['category:read', 'category:write', 'score-range:read', 'score-range:write'])]
     private ?StudyLanguage $studyLanguage = null;
 
-    /** `''` = umumiy ball uchun oraliq; `'*'` = subshkala ballari uchun (nomiga bog'liq bo'lmagan) umumiy oraliq. */
-    #[ORM\Column(type: Types::STRING, length: 8, options: ['default' => ''])]
+    /** `''` = umumiy ball uchun oraliq; `Question.subscaleRangeKey` bilan mos
+     * (masalan `'*'` — umumiy subshkala oralig'i, yoki `'anxiety_fatigue'`
+     * kabi maxsus kalit — teng bo'lmagan subshkalalar uchun). */
+    #[ORM\Column(type: Types::STRING, length: 32, options: ['default' => ''])]
     #[Groups(['category:read', 'category:write', 'score-range:read', 'score-range:write'])]
     private string $subscaleKey = '';
 

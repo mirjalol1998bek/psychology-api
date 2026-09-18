@@ -11,6 +11,8 @@ Quiz ichidagi bitta savol.
 | `position` | smallint | |
 | `isReversed` | bool = false | `getIsReversed()` — `SCORE_SCALE` da teskari ballash |
 | `subscaleKey` | string = `''` | `SCORE_SCALE` metodikada subshkala nomi (masalan "Akademik moslashuv" — IPM-20). Bo'sh = faqat umumiy ballga kiradi. [`assessment-scoring.md`](assessment-scoring.md) |
+| `overallSign` | smallint = `1` | UMUMIY ballga qo'shiladigan ishora (+1/−1) — masalan OKM-20: IMI = (A+B) − (C+D). Subshkalaning o'z ballini o'zgartirmaydi |
+| `subscaleRangeKey` | string = `'*'` | Subshkala qaysi ball oralig'i/talqin jadvalidan foydalanadi. `'*'` = barcha subshkalalar umumiy (IPM-20, OKM-20). Teng bo'lmagan subshkalalarda (EHS-20) har guruh o'z kalitiga ega |
 | `options` | OneToMany `AnswerOption`, cascade persist+remove, orphanRemoval, `OrderBy position` | |
 
 `addOption()`, `hasOption(AnswerOption): bool`.

@@ -26,6 +26,8 @@ final class CatalogSeeder
         private readonly PsychogeometricData $psychogeometric,
         private readonly ZungData $zung,
         private readonly Ipm20Data $ipm20,
+        private readonly Okm20Data $okm20,
+        private readonly Ehs20Data $ehs20,
     ) {
     }
 
@@ -40,6 +42,8 @@ final class CatalogSeeder
         $created[] = $this->seedPsychogeometric();
         $created[] = $this->seedZung();
         $created[] = $this->seedIpm20();
+        $created[] = $this->seedOkm20();
+        $created[] = $this->seedEhs20();
 
         return array_values(array_filter($created, static fn (?string $name): bool => $name !== null));
     }
@@ -278,6 +282,175 @@ final class CatalogSeeder
 
         foreach ($this->ipm20->subscaleInterpretationsRu() as $key => $data) {
             $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text'], '*');
+        }
+    }
+
+    private function seedOkm20(): ?string
+    {
+        $name = 'OKM-20: O\'quv-kasbiy motivatsiya so\'rovnomasi';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::ScoreScaleMotivation, 6);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillOkm20Questions($quizUz, $this->okm20->questionsUz(), Okm20Data::OPTIONS_UZ);
+        $quizRu = $this->factory->createQuiz(
+            $category,
+            'ОУПМ-20: Опросник учебно-профессиональной мотивации',
+            StudyLanguage::Russian,
+        );
+        $this->fillOkm20Questions($quizRu, $this->okm20->questionsRu(), Okm20Data::OPTIONS_RU);
+
+        $this->addOkm20Ranges($category);
+        $this->addOkm20Interpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<array{text: string, subscale: string, sign: int}> $questions
+     * @param list<string>                                           $options
+     */
+    private function fillOkm20Questions(Quiz $quiz, array $questions, array $options): void
+    {
+        $position = 0;
+
+        foreach ($questions as $questionData) {
+            $position++;
+            $question = $this->factory->createQuestion(
+                $quiz,
+                QuestionType::Scale,
+                $questionData['text'],
+                $position,
+                $questionData['subscale'],
+                $questionData['sign'],
+            );
+            $score = 0;
+
+            foreach ($options as $label) {
+                $score++;
+                $this->factory->createOption($question, $label, $score, null);
+            }
+
+            $quiz->addQuestion($question);
+        }
+    }
+
+    private function addOkm20Ranges(Category $category): void
+    {
+        foreach ($this->okm20->overallRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key']);
+        }
+
+        foreach ($this->okm20->subscaleRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], '*');
+        }
+    }
+
+    private function addOkm20Interpretations(Category $category): void
+    {
+        foreach ($this->okm20->overallInterpretationsUz() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text']);
+        }
+
+        foreach ($this->okm20->overallInterpretationsRu() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text']);
+        }
+
+        foreach ($this->okm20->subscaleInterpretationsUz() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text'], '*');
+        }
+
+        foreach ($this->okm20->subscaleInterpretationsRu() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text'], '*');
+        }
+    }
+
+    private function seedEhs20(): ?string
+    {
+        $name = 'EHS-20: Emotsional holat va stressga chidamlilik so\'rovnomasi';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::ScoreScaleEmotional, 7);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillEhs20Questions($quizUz, $this->ehs20->questionsUz(), Ehs20Data::OPTIONS_UZ);
+        $quizRu = $this->factory->createQuiz(
+            $category,
+            'ЭСС-20: Опросник эмоционального состояния и стрессоустойчивости',
+            StudyLanguage::Russian,
+        );
+        $this->fillEhs20Questions($quizRu, $this->ehs20->questionsRu(), Ehs20Data::OPTIONS_RU);
+
+        $this->addEhs20Ranges($category);
+        $this->addEhs20Interpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<array{text: string, subscale: string, sign: int, rangeKey: string}> $questions
+     * @param list<string>                                                             $options
+     */
+    private function fillEhs20Questions(Quiz $quiz, array $questions, array $options): void
+    {
+        $position = 0;
+
+        foreach ($questions as $questionData) {
+            $position++;
+            $question = $this->factory->createQuestion(
+                $quiz,
+                QuestionType::Scale,
+                $questionData['text'],
+                $position,
+                $questionData['subscale'],
+                $questionData['sign'],
+                $questionData['rangeKey'],
+            );
+            $score = 0;
+
+            foreach ($options as $label) {
+                $score++;
+                $this->factory->createOption($question, $label, $score, null);
+            }
+
+            $quiz->addQuestion($question);
+        }
+    }
+
+    private function addEhs20Ranges(Category $category): void
+    {
+        foreach ($this->ehs20->overallRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key']);
+        }
+
+        foreach ($this->ehs20->subscaleRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], $range['rangeKey']);
+        }
+    }
+
+    private function addEhs20Interpretations(Category $category): void
+    {
+        foreach ($this->ehs20->overallInterpretationsUz() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text']);
+        }
+
+        foreach ($this->ehs20->overallInterpretationsRu() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text']);
+        }
+
+        foreach ($this->ehs20->subscaleInterpretationsUz() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Uzbek, $data['title'], $data['text'], $data['rangeKey']);
+        }
+
+        foreach ($this->ehs20->subscaleInterpretationsRu() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Russian, $data['title'], $data['text'], $data['rangeKey']);
         }
     }
 

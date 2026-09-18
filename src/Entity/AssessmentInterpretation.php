@@ -51,8 +51,10 @@ class AssessmentInterpretation
     #[Groups(['category:read', 'category:write', 'interpretation:read', 'interpretation:write'])]
     private string $resultKey = '';
 
-    /** `''` = umumiy natija uchun; `'*'` = subshkala ballari uchun (nomiga bog'liq bo'lmagan) umumiy talqin. */
-    #[ORM\Column(type: Types::STRING, length: 8, options: ['default' => ''])]
+    /** `''` = umumiy natija uchun; `Question.subscaleRangeKey` bilan mos
+     * (masalan `'*'` — umumiy subshkala talqini, yoki `'anxiety_fatigue'`
+     * kabi maxsus kalit — teng bo'lmagan subshkalalar uchun). */
+    #[ORM\Column(type: Types::STRING, length: 32, options: ['default' => ''])]
     #[Groups(['category:read', 'category:write', 'interpretation:read', 'interpretation:write'])]
     private string $subscaleKey = '';
 

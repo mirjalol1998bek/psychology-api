@@ -41,14 +41,23 @@ final class AssessmentFactory
         return $quiz;
     }
 
-    public function createQuestion(Quiz $quiz, QuestionType $type, string $text, int $position, string $subscaleKey = ''): Question
-    {
+    public function createQuestion(
+        Quiz $quiz,
+        QuestionType $type,
+        string $text,
+        int $position,
+        string $subscaleKey = '',
+        int $overallSign = 1,
+        string $subscaleRangeKey = '*',
+    ): Question {
         $question = new Question();
         $question->setQuiz($quiz);
         $question->setType($type);
         $question->setText($text);
         $question->setPosition($position);
         $question->setSubscaleKey($subscaleKey);
+        $question->setOverallSign($overallSign);
+        $question->setSubscaleRangeKey($subscaleRangeKey);
 
         return $question;
     }

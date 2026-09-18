@@ -73,6 +73,25 @@ class Question
     #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
     private string $subscaleKey = '';
 
+    /** Umumiy ballga qo'shiladigan ishora (+1/-1) — masalan OKM-20'da
+     * "Ichki motivatsiya indeksi" = (A+B) − (C+D): A/B savollari +1,
+     * C/D savollari −1. Subshkalaning o'z ballini (5-25) o'zgartirmaydi,
+     * faqat UMUMIY ko'rsatkichga qanday qo'shilishini belgilaydi. */
+    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 1])]
+    #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
+    private int $overallSign = 1;
+
+    /** Subshkala qaysi ball oralig'i/talqin jadvalidan foydalanadi.
+     * Standart `'*'` — barcha subshkalalar bitta umumiy (nomiga bog'liq
+     * bo'lmagan) jadvalni ishlatadi (IPM-20, OKM-20: hammasi 5-25).
+     * Subshkalalar TENG BO'LMAGAN o'lchamda bo'lsa (masalan EHS-20: A/B
+     * 7-35, C 6-30) — har guruh o'z maxsus kalitini oladi (masalan
+     * `'anxiety_fatigue'`, `'resilience'`), shu kalit bilan alohida
+     * `ScoreRange`/`AssessmentInterpretation` yaratiladi. */
+    #[ORM\Column(type: Types::STRING, length: 32, options: ['default' => '*'])]
+    #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
+    private string $subscaleRangeKey = '*';
+
     #[ORM\OneToMany(mappedBy: 'question', targetEntity: AnswerOption::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['position' => 'ASC'])]
     #[Groups(['question:read', 'quiz:read:full', 'question:write'])]
@@ -169,6 +188,30 @@ class Question
     public function setSubscaleKey(string $subscaleKey): self
     {
         $this->subscaleKey = $subscaleKey;
+
+        return $this;
+    }
+
+    public function getOverallSign(): int
+    {
+        return $this->overallSign;
+    }
+
+    public function setOverallSign(int $overallSign): self
+    {
+        $this->overallSign = $overallSign;
+
+        return $this;
+    }
+
+    public function getSubscaleRangeKey(): string
+    {
+        return $this->subscaleRangeKey;
+    }
+
+    public function setSubscaleRangeKey(string $subscaleRangeKey): self
+    {
+        $this->subscaleRangeKey = $subscaleRangeKey;
 
         return $this;
     }
