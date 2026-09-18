@@ -19,7 +19,7 @@ Unikal: (`student`, `quiz`) — bir quiz bo'yicha bitta urinish.
 
 | Operatsiya | Ruxsat |
 |---|---|
-| `GET /api/attempts` | `StudentAttemptProvider` (o'zi / xodim hammasi) |
+| `GET /api/attempts` | `StudentAttemptProvider` — talaba: **faqat o'zi** (filtrlarsiz, qo'lda `findBy`); xodim: ORM'ning standart `CollectionProvider`'i orqali — shu sababli `?quiz=`, `?student=`, `?status=`, `?quiz.category=` filtri **faqat xodim uchun** ishlaydi (masalan "shu testni kim topshirgan" — Testlar sahifasida test o'chirilmoqchi bo'lganda) |
 | `GET /api/attempts/{id}` | egasi yoki `ROLE_PSYCHOLOGIST` |
 | `POST /api/attempts/start` | `{categoryId}` → `AttemptStartAction` |
 | `POST /api/attempts/{id}/answers` | `{answers:[...]}` → `AttemptSaveAnswersAction` |
