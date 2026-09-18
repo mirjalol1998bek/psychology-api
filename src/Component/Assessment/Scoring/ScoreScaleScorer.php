@@ -19,8 +19,8 @@ use App\Enum\InstrumentType;
  * subshkalalar bitta umumiy jadvaldan foydalanadi (IPM-20, OKM-20: hammasi
  * 5-25). Subshkalalar TENG BO'LMAGAN o'lchamda bo'lsa (EHS-20: A/B 7-35,
  * C 6-30) — har guruh o'z maxsus kalitiga ega bo'ladi. Subshkalasi yo'q
- * metodikalarda (Zung) bu guruhlash bo'sh qoladi — eski xatti-harakat
- * o'zgarmaydi.
+ * metodikalarda bu guruhlash bo'sh qoladi — natija faqat umumiy ball bilan
+ * chiqadi.
  *
  * `Question.overallSign` (+1/-1) — UMUMIY ball qo'shiladigan ishora
  * (masalan OKM-20: IMI = (A+B) − (C+D) — C/D savollari −1 bilan qo'shiladi;

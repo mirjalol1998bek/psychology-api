@@ -1,6 +1,6 @@
 # ScoreRange
 
-`SCORE_SCALE` metodikasi uchun ball oralig'i → natija kaliti (Zung, Ibodullayev).
+`SCORE_SCALE` metodikasi uchun ball oralig'i → natija kaliti (masalan Ibodullayev shkalasi).
 
 | Maydon | Tip | Izoh |
 |---|---|---|

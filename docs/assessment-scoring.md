@@ -19,7 +19,7 @@
 | `TEMPERAMENT_STATEMENTS` | `CategoryTallyScorer` | Har bayonot = "Ha/Yo'q". Tanlangan "Ha" variantlar `AnswerOption.categoryKey` bo'yicha sanaladi. Eng ko'p ballli kategoriya — natija. | kategoriya → ball |
 | `TEMPERAMENT_CHOICE` | `CategoryTallyScorer` | Har savolga bitta javob; `option.categoryKey` bo'yicha sanaladi; argmax. | kategoriya → ball |
 | `FIGURE_CHOICE` | `FigureChoiceScorer` | Bitta figura tanlanadi; `option.categoryKey` (yo'q bo'lsa `text`) — natija. | bo'sh |
-| `SCORE_SCALE` | `ScoreScaleScorer` | Tanlangan variant ballari yig'iladi. Teskari savolda (`Question.getIsReversed()`) `(maxOptionScore + minOptionScore) - optionScore` (Zung: `5 - ball`). Yig'indi `ScoreRange` oralig'iga tushadi → `resultKey`. | Subshkalasiz: `[{label:'score', value: total}]`. Subshkalali (pastga qarang): har subshkala uchun bitta element |
+| `SCORE_SCALE` | `ScoreScaleScorer` | Tanlangan variant ballari yig'iladi. Teskari savolda (`Question.getIsReversed()`) `(maxOptionScore + minOptionScore) - optionScore`. Yig'indi `ScoreRange` oralig'iga tushadi → `resultKey`. | Subshkalasiz: `[{label:'score', value: total}]`. Subshkalali (pastga qarang): har subshkala uchun bitta element |
 
 ### Subshkalali `SCORE_SCALE` (masalan IPM-20)
 
@@ -48,7 +48,7 @@ ALOHIDA ball/daraja chiqaradi, umumiy indeks bilan birga:
   `BreakdownItem(label: subscaleKey, value, resultKey, title, description)`
   yaratadi — `label` savolning subscaleKey qiymati (talaba tilidagi to'liq
   nom, chunki har til o'z Quiz'ida alohida saqlanadi).
-- Subshkalasi yo'q metodikalarda (Zung) bu guruhlash bo'sh qoladi — eski
+- Subshkalasi yo'q metodikalarda bu guruhlash bo'sh qoladi — eski
   `[{label:'score', value: total}]` xatti-harakat o'zgarmaydi.
 
 ### Ishorali umumiy indeks (masalan OKM-20: IMI = (A+B) − (C+D))
@@ -57,8 +57,8 @@ Ba'zi subshkalali metodikalarda UMUMIY ko'rsatkich oddiy yig'indi emas —
 ba'zi subshkalalar **musbat**, ba'zilari **manfiy** qo'shiladi:
 
 - `Question.overallSign` — shu savol UMUMIY ballga +1 yoki −1 bilan
-  qo'shiladimi (standart `+1`, ya'ni oddiy yig'indi — IPM-20/Zung
-  o'zgarishsiz qoladi). Subshkalaning o'z ballini (5–25) o'zgartirmaydi —
+  qo'shiladimi (standart `+1`, ya'ni oddiy yig'indi — IPM-20 o'zgarishsiz
+  qoladi). Subshkalaning o'z ballini (5–25) o'zgartirmaydi —
   `subscaleTotals()` doim ishorasiz, xom yig'indi.
 - OKM-20'da: A/B (ichki motivlar) savollari `overallSign=1`,
   C/D (tashqi/aralash) savollari `overallSign=-1` — natijada umumiy

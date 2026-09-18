@@ -359,18 +359,23 @@ private function findBestSplitPosition(string $content): int
   (Symfony `roles[]` bilan mos).
 - `StudyLanguage: string` — `uz`, `ru`
 - **`InstrumentType: string`** — **ballash algoritmi** (metodika turi emas).
-  Yangi metodika (Zung, Ibodullayev shkalasi, ...) qo'shish — bu **`Category`
-  qatori + savol/ball ma'lumoti**, yangi kod emas. Qiymatlari:
+  Oddiy (subshkalasiz) yangi metodika (Ibodullayev shkalasi kabi) qo'shish —
+  bu **`Category` qatori + savol/ball ma'lumoti**, yangi kod emas. Qiymatlari:
   - `TEMPERAMENT_STATEMENTS` — har bayonotga "Ha/Yo'q"; `AnswerOption.categoryKey`
     bo'yicha "Ha"lar sanaladi, eng ko'p ballli kategoriya natija (uz temperament).
   - `TEMPERAMENT_CHOICE` — har savolga bitta javob; `option.categoryKey` bo'yicha
     eng ko'p tanlangan kategoriya natija (ru temperament).
   - `FIGURE_CHOICE` — bitta figura tanlanadi; o'sha figura natija (psixogeometrik).
   - `SCORE_SCALE` — variant ballari yig'iladi → `ScoreRange` oralig'i → xulosa
-    (Zung depressiya shkalasi, Ibodullayev shkalasi, nevrasteniya so'rovnomasi
-    va h.k.). Teskari (reverse) savollar `Question.getIsReversed()` orqali.
+    (masalan Ibodullayev shkalasi). Teskari (reverse) savollar
+    `Question.getIsReversed()` orqali.
+  - `SCORE_SCALE_SUBSCALE` / `SCORE_SCALE_MOTIVATION` / `SCORE_SCALE_EMOTIONAL`
+    — xuddi `SCORE_SCALE` bilan bir xil ballash (`ScoreScaleScorer`), lekin
+    savollar `Question.subscaleKey` bo'yicha nomlangan subshkalalarga
+    guruhlanadi (IPM-20, OKM-20, EHS-20). Batafsil:
+    [`docs/assessment-scoring.md`](docs/assessment-scoring.md).
 - `QuestionType: string` — `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`,
-  `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE_1_4` (Zung), `SCALE_0_3`
+  `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE`
 - `AttemptStatus: string` — `not_started`, `in_progress`, `submitted`, `reviewed`
 - `AppointmentStatus: string` — `free`, `booked`, `cancelled`
 - `AppealMode: string` — `named`, `anonymous`
@@ -388,11 +393,11 @@ private function findBestSplitPosition(string $content): int
 | `User` | Talaba / psixolog / admin. HEMIS profili + rollar. | `docs/user.md` |
 | `Faculty` | Fakultet (HEMIS'dan). | `docs/faculty.md` |
 | `StudyGroup` | Guruh, fakultetga tegishli, ta'lim tili. | `docs/study-group.md` |
-| `Category` | Metodika (Temperament, Psixogeometrik, Zung, Ibodullayev, ...) + `InstrumentType` (ballash algoritmi). | `docs/category.md` |
+| `Category` | Metodika (Temperament, Psixogeometrik, IPM-20, ...) + `InstrumentType` (ballash algoritmi). | `docs/category.md` |
 | `Quiz` | Kategoriya ichidagi test. `studyLanguage` (uz/ru variantlar). | `docs/quiz.md` |
 | `Question` | Savol + `QuestionType` + tartib + `getIsReversed()`. | `docs/question.md` |
 | `AnswerOption` | Javob varianti (matn/rasm, ball, `categoryKey`). | `docs/answer-option.md` |
-| `ScoreRange` | `SCORE_SCALE` uchun ball oralig'i → natija kaliti (Zung/Ibodullayev). | `docs/score-range.md` |
+| `ScoreRange` | `SCORE_SCALE` oilasi uchun ball oralig'i → natija kaliti. | `docs/score-range.md` |
 | `AssessmentInterpretation` | Natija matni (temperament tipi / figura / ball oralig'i tavsifi), uz/ru. | `docs/assessment-interpretation.md` |
 | `Assignment` | Kategoriyani fakultet/guruhga biriktirish + muddat. | `docs/assignment.md` |
 | `Attempt` | Talabaning bitta metodika bo'yicha urinishi. | `docs/attempt.md` |
@@ -453,7 +458,7 @@ mosini qaytaradi).
 `AssessmentInterpretationRepository` dan `resultKey` + `attempt.studyLanguage`
 bo'yicha matn → `AssessmentResult` saqlanadi.
 
-**Yangi metodika qo'shish** (masalan Zung): `Category(instrumentType: SCORE_SCALE)`
+**Yangi metodika qo'shish** (masalan Ibodullayev shkalasi): `Category(instrumentType: SCORE_SCALE)`
 + `Quiz` + `Question`lar + `AnswerOption`lar (ball bilan) + `ScoreRange`lar +
 `AssessmentInterpretation`lar. **Kod yozilmaydi** — faqat fixture/seed yoki
 admin API orqali ma'lumot.
@@ -561,7 +566,7 @@ Domen shakllari bo'yicha manba: `psychology-front/src/types/domain.ts`,
 - [x] `Appeal` (anonim/ismli) + javob, `Notification`, `StudentPassport`,
   `AppointmentSlot`
 - [x] `role_hierarchy`, State Provider/Processor'lar (talaba izolyatsiyasi)
-- [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, Zung
+- [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, IPM-20, OKM-20, EHS-20
 - [x] `docs/` — barcha entity + jarayon hujjatlari
 
 - [x] HEMIS OAuth2 (`docs/hemis-auth.md` — authorization code oqimi,

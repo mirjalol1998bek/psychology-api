@@ -1,6 +1,6 @@
 # Category
 
-Bitta metodika (Temperament, Psixogeometrik, Zung, ...) + ballash algoritmi.
+Bitta metodika (Temperament, Psixogeometrik, IPM-20, ...) + ballash algoritmi.
 
 | Maydon | Tip | Izoh |
 |---|---|---|

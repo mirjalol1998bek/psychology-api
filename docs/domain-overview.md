@@ -32,10 +32,12 @@ User 1───* Notification
 ## Metodika (instrument) — bu **ma'lumot**, kod emas
 
 `Category` bitta metodikani ifodalaydi; `Category.instrumentType`
-(`InstrumentType`) — **ballash algoritmi** (4 ta qiymat). Yangi metodika
-(Zung, Ibodullayev, nevrasteniya so'rovnomasi, ...) qo'shish = yangi `Category`
+(`InstrumentType`) — **ballash algoritmi**. `SCORE_SCALE` oilasidagi yangi
+metodika (Ibodullayev shkalasi kabi) qo'shish = yangi `Category`
 + `Quiz` + `Question`/`AnswerOption` (+ `ScoreRange`/`AssessmentInterpretation`)
-qatorlari. Yangi PHP kodi yozilmaydi. Batafsil:
+qatorlari, PHP kodi yozilmasdan. Subshkalali/ishorali yangi turdagi metodika
+(IPM-20/OKM-20/EHS-20 kabi) esa frontendni ajratish uchun o'ziga xos
+`InstrumentType` qiymatini talab qiladi. Batafsil:
 [`assessment-scoring.md`](assessment-scoring.md).
 
 ## Til (uz/ru)

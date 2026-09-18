@@ -24,7 +24,6 @@ final class CatalogSeeder
         private readonly TemperamentUzData $temperamentUz,
         private readonly TemperamentRuData $temperamentRu,
         private readonly PsychogeometricData $psychogeometric,
-        private readonly ZungData $zung,
         private readonly Ipm20Data $ipm20,
         private readonly Okm20Data $okm20,
         private readonly Ehs20Data $ehs20,
@@ -40,7 +39,6 @@ final class CatalogSeeder
         $created[] = $this->seedTemperamentUz();
         $created[] = $this->seedTemperamentRu();
         $created[] = $this->seedPsychogeometric();
-        $created[] = $this->seedZung();
         $created[] = $this->seedIpm20();
         $created[] = $this->seedOkm20();
         $created[] = $this->seedEhs20();
@@ -153,57 +151,6 @@ final class CatalogSeeder
         foreach ($this->psychogeometric->interpretations() as $figureKey => $text) {
             $this->factory->createInterpretation($category, $figureKey, StudyLanguage::Uzbek, $figureKey, $text['uz']);
             $this->factory->createInterpretation($category, $figureKey, StudyLanguage::Russian, $figureKey, $text['ru']);
-        }
-    }
-
-    private function seedZung(): ?string
-    {
-        $name = 'Zung depressiya shkalasi';
-
-        if ($this->exists($name)) {
-            return null;
-        }
-
-        $category = $this->factory->createCategory($name, InstrumentType::ScoreScale, 4);
-        $quiz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
-        $this->fillScaleQuestions($quiz);
-        $this->addZungRanges($category);
-        $this->addZungInterpretations($category);
-        $this->persist($category, [$quiz]);
-
-        return $name;
-    }
-
-    private function fillScaleQuestions(Quiz $quiz): void
-    {
-        $position = 0;
-
-        foreach ($this->zung->questions() as $questionData) {
-            $position++;
-            $question = $this->factory->createQuestion($quiz, QuestionType::Scale, $questionData['text'], $position);
-            $question->setIsReversed($questionData['reversed']);
-            $score = 0;
-
-            foreach (ZungData::OPTIONS as $label) {
-                $score++;
-                $this->factory->createOption($question, $label, $score, null);
-            }
-
-            $quiz->addQuestion($question);
-        }
-    }
-
-    private function addZungRanges(Category $category): void
-    {
-        foreach ($this->zung->ranges() as $range) {
-            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key']);
-        }
-    }
-
-    private function addZungInterpretations(Category $category): void
-    {
-        foreach ($this->zung->interpretations() as $key => $data) {
-            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text']);
         }
     }
 
