@@ -25,4 +25,11 @@ enum InstrumentType: string
      * yaratilmaydi — ScoreScaleScorer buni avtomatik aniqlab, umumiy ball
      * o'rniga faqat subshkala breakdown qaytaradi. */
     case ScoreScaleCommunication = 'SCORE_SCALE_COMMUNICATION';
+    /** Xuddi shu — QY-16 (qadriyat yo'nalishlari, ranjirlash) uchun. Savol
+     * javobi "variant tanlash" emas — har savol bitta qadriyat, variantlari
+     * 1-16 o'rin, `AnswerOption.score` = tanlangan o'rin raqami. UMUMIY
+     * BALLSIZ (KSM-20 kabi): natija faqat 4 blokning o'rinlar yig'indisi
+     * (kichik yig'indi = ustuvor blok). Frontendda maxsus "tartiblash"
+     * interfeysi bilan render qilinadi (scale_choice emas). */
+    case ScoreScaleValues = 'SCORE_SCALE_VALUES';
 }

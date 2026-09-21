@@ -13,7 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'ask:seed:assessments',
-    description: 'Tayyor metodikalarni (temperament uz/ru, psixogeometrik, IPM-20, OKM-20, EHS-20, KSM-20, XO-20) bazaga yuklaydi',
+    description: 'Tayyor metodikalarni (temperament uz/ru, psixogeometrik, IPM-20, OKM-20, EHS-20, KSM-20, XO-20, QY-16) bazaga yuklaydi',
 )]
 class AskSeedAssessmentsCommand extends Command
 {

@@ -30,6 +30,7 @@ final class CatalogSeeder
         private readonly Ehs20Data $ehs20,
         private readonly Ksm20Data $ksm20,
         private readonly Xo20Data $xo20,
+        private readonly Qy16Data $qy16,
     ) {
     }
 
@@ -47,6 +48,7 @@ final class CatalogSeeder
         $created[] = $this->seedEhs20();
         $created[] = $this->seedKsm20();
         $created[] = $this->seedXo20();
+        $created[] = $this->seedQy16();
 
         return array_values(array_filter($created, static fn (?string $name): bool => $name !== null));
     }
@@ -581,6 +583,99 @@ final class CatalogSeeder
         }
 
         foreach ($this->xo20->subscaleInterpretationsRu() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Russian, $data['title'], $data['text'], $data['rangeKey']);
+        }
+    }
+
+    private function seedQy16(): ?string
+    {
+        $name = 'QY-16: Qadriyat yo\'nalishlari so\'rovnomasi';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::ScoreScaleValues, 10);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillQy16Questions($quizUz, $this->qy16->valuesUz(), $this->qy16->positionOptionsUz());
+        $quizRu = $this->factory->createQuiz(
+            $category,
+            'ЦО-16: Опросник ценностных ориентаций',
+            StudyLanguage::Russian,
+        );
+        $this->fillQy16Questions($quizRu, $this->qy16->valuesRu(), $this->qy16->positionOptionsRu());
+
+        $this->addQy16Ranges($category);
+        $this->addQy16Interpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<array{text: string, block: string, rangeKey: string}> $values
+     * @param list<string>                                                $positionOptions
+     */
+    private function fillQy16Questions(Quiz $quiz, array $values, array $positionOptions): void
+    {
+        $position = 0;
+
+        foreach ($values as $valueData) {
+            $position++;
+            $question = $this->factory->createQuestion(
+                $quiz,
+                QuestionType::Scale,
+                $valueData['text'],
+                $position,
+                $valueData['block'],
+                1,
+                $valueData['rangeKey'],
+            );
+            $rank = 0;
+
+            foreach ($positionOptions as $label) {
+                $rank++;
+                $this->factory->createOption($question, $label, $rank, null);
+            }
+
+            $quiz->addQuestion($question);
+        }
+    }
+
+    /** QY-16'da ham KSM-20'dagi kabi umumiy ScoreRange (subscaleKey='') ataylab
+     * yaratilmaydi — 4 blokning har biri o'z o'rinlar yig'indisi bilan chiqadi. */
+    private function addQy16Ranges(Category $category): void
+    {
+        foreach ($this->qy16->blockRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], $range['rangeKey']);
+        }
+    }
+
+    private function addQy16Interpretations(Category $category): void
+    {
+        $noOverallUz = $this->qy16->noOverallInterpretationUz();
+        $this->factory->createInterpretation(
+            $category,
+            ScoreScaleScorer::NO_OVERALL_RESULT_KEY,
+            StudyLanguage::Uzbek,
+            $noOverallUz['title'],
+            $noOverallUz['text'],
+        );
+
+        $noOverallRu = $this->qy16->noOverallInterpretationRu();
+        $this->factory->createInterpretation(
+            $category,
+            ScoreScaleScorer::NO_OVERALL_RESULT_KEY,
+            StudyLanguage::Russian,
+            $noOverallRu['title'],
+            $noOverallRu['text'],
+        );
+
+        foreach ($this->qy16->blockInterpretationsUz() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Uzbek, $data['title'], $data['text'], $data['rangeKey']);
+        }
+
+        foreach ($this->qy16->blockInterpretationsRu() as $data) {
             $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Russian, $data['title'], $data['text'], $data['rangeKey']);
         }
     }

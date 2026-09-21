@@ -46,7 +46,8 @@ final class ScoreScaleScorer implements ScorerInterface
             || $instrumentType === InstrumentType::ScoreScaleMotivation
             || $instrumentType === InstrumentType::ScoreScaleEmotional
             || $instrumentType === InstrumentType::ScoreScaleRisk
-            || $instrumentType === InstrumentType::ScoreScaleCommunication;
+            || $instrumentType === InstrumentType::ScoreScaleCommunication
+            || $instrumentType === InstrumentType::ScoreScaleValues;
     }
 
     public function score(Attempt $attempt): ScoredResult

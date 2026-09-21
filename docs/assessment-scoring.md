@@ -65,12 +65,13 @@ ba'zi subshkalalar **musbat**, ba'zilari **manfiy** qo'shiladi:
   `sumScore()` aynan `(A+B)-(C+D)` ni beradi, `ScoreRange` esa manfiy
   qiymatlarni ham qabul qiladi (masalan `−40..−11`).
 
-### Umumiy ballsiz subshkalali metodika (masalan KSM-20)
+### Umumiy ballsiz subshkalali metodika (masalan KSM-20, QY-16)
 
 Ba'zi so'rovnomalarda yagona UMUMIY ko'rsatkich mantiqan mavjud emas —
 natija faqat mustaqil subshkalalar bilan chiqadi (KSM-20: muloqotchanlik,
 empatiya, konfliktlilik, tashkilotchilik — birlashtirib bo'lmaydigan
-4 ta mustaqil xususiyat):
+4 ta mustaqil xususiyat; QY-16: 4 qadriyat bloki — har biri mustaqil
+ustuvorlik darajasi, umumiy "reyting" ma'nosiz):
 
 - Bunday kategoriya uchun umumiy `ScoreRange` (`subscaleKey=''`) ataylab
   **yaratilmaydi** — faqat subshkala `ScoreRange`lari bo'ladi.
@@ -87,6 +88,19 @@ empatiya, konfliktlilik, tashkilotchilik — birlashtirib bo'lmaydigan
 - Frontendda `score === null` bo'lsa "Umumiy ball" ko'rsatkichi
   ko'rsatilmaydi (`TestResultView.vue`), faqat subshkala breakdown
   chiqadi — kodga tegilmadi, chunki `score` allaqachon `?int` edi.
+
+### Ranjirlash metodikasi (QY-16) — Question/Option'ning boshqacha ma'nosi
+
+QY-16'da savol-javob modeli boshqa `SCORE_SCALE` metodikalardan farqli:
+har `Question` — bitta ranjirlanadigan element (masalan bitta qadriyat),
+uning `AnswerOption`lari esa "1-o'rin"..."16-o'rin" degan pozitsiyalar
+(`score` = pozitsiya raqami). Talaba HAR elementga alohida pozitsiya
+belgilaydi (frontendda esa bitta ro'yxatni surib-tushirib tartiblash
+sifatida ko'rinadi — `TakeTestView.vue`'da alohida `ranking_list`
+format). Ballash tomoni — oddiy `subscaleKey` bo'yicha yig'indi
+(`ScoreScaleScorer`, boshqa hech narsa o'zgarmagan): pozitsiya raqami
+qancha kichik bo'lsa (ya'ni talaba shu elementni yuqoriroqqa qo'ysa),
+uning subshkalasi (blok) yig'indisi shuncha kichik va ustuvor chiqadi.
 
 `Tally` — value object (`array<string,int>` ni inkapsulyatsiya qiladi):
 `register`, `add`, `topKey`, `toBreakdown`.

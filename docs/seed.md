@@ -19,6 +19,7 @@ Idempotent: kategoriya nomi bo'yicha mavjud bo'lsa o'tkazib yuboradi.
 | `Ehs20Data` | EHS-20: 3 subshkala × savol (uz/ru), teng bo'lmagan subshkala o'lchami, ishorali umumiy indeks (ERI = (A+B) − C) |
 | `Ksm20Data` | KSM-20: 4 subshkala × 5 savol (uz/ru), **umumiy ball yo'q** (faqat subshkalalar; C — konfliktlilik — teskari ma'noli o'z jadvaliga ega) |
 | `Xo20Data` | XO-20: 5 subshkala × 4 savol (uz/ru), oddiy umumiy yig'indi (20–100); E — psixologik yordamga ehtiyoj — o'z jadvaliga ega |
+| `Qy16Data` | QY-16: 16 qadriyat (ranjirlash, har biri o'z savoli, variantlari 1-16 o'rin), 4 blok, **umumiy ball yo'q** — blok yig'indisi qancha kichik, shuncha ustuvor |
 
 Yaratiladigan kategoriyalar:
 
@@ -32,6 +33,7 @@ Yaratiladigan kategoriyalar:
 | EHS-20 | `SCORE_SCALE_EMOTIONAL` | uz + ru | 20 (`SCALE`, 1–5 ball) |
 | KSM-20 | `SCORE_SCALE_COMMUNICATION` | uz + ru | 20 (`SCALE`, 1–5 ball) |
 | XO-20 | `SCORE_SCALE_RISK` | uz + ru | 20 (`SCALE`, 1–5 ball) |
+| QY-16 | `SCORE_SCALE_VALUES` | uz + ru | 16 (`SCALE`, 1–16 o'rin) |
 
 `AnswerOption.categoryKey`:
 - statements: "Ha" variantida blok kaliti (`Xolerik`/...), "Yo'q" da `null`
