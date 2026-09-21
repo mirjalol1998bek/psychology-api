@@ -23,11 +23,20 @@ User 1───* Notification
 | Rol | Nima qila oladi |
 |---|---|
 | `ROLE_STUDENT` | O'ziga biriktirilgan `Assignment`; o'z `Attempt` / `AssessmentResult` / `Appeal` / `StudentPassport`; bildirishnomalar |
+| `ROLE_TUTOR` | Faqat o'ziga (`StudyGroup.tutor`) biriktirilgan guruhlar talabalari ro'yxati (`GET /api/tutor/students`) — test natijalariga kirmaydi. Hierarxiyaga kirmaydi (`isStaff()=false`), staff huquqlaridan mustaqil |
 | `ROLE_PSYCHOLOGIST` | Barcha natijalar, murojaatlar, kalendar, metodika (Category/Quiz/Question/...) yaratish |
 | `ROLE_ADMIN` | Hammasi + `Faculty` / `StudyGroup` / talaba yaratish |
 
 `config/packages/security.yaml` da `role_hierarchy`:
-`ROLE_ADMIN > ROLE_PSYCHOLOGIST > ROLE_STUDENT`.
+`ROLE_ADMIN > ROLE_PSYCHOLOGIST > ROLE_STUDENT`. `ROLE_TUTOR` alohida —
+hierarxiyaga kirmaydi, faqat o'z guruhiga scoped.
+
+**Muhim:** kontroller darajasidagi `#[IsGranted(...)]` faqat
+`Symfony\Component\Security\Http\Attribute\IsGranted` bilan ishlaydi —
+`Symfony\Component\HttpKernel\Attribute\IsGranted` degan klass **mavjud
+emas** (PHP `use`'ni jim yutib yuboradi, attribute hech qachon
+o'qilmaydi — rol tekshiruvi butunlay o'chib qoladi). 2026-09-21'da shu
+xato 15 ta kontrollerda topilib tuzatildi.
 
 ## Metodika (instrument) — bu **ma'lumot**, kod emas
 

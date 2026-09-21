@@ -7,9 +7,9 @@ namespace App\Controller;
 use App\Component\Organization\Hemis\Message\NightlyHemisSyncMessage;
 use App\Controller\Base\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\IsGranted;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
  * Barcha import qilingan guruhlarning talabalarini HEMIS'dan qayta yuklashni

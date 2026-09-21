@@ -11,8 +11,8 @@ use App\Repository\CategoryRepository;
 use App\Repository\StudyGroupRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\IsGranted;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[IsGranted('ROLE_PSYCHOLOGIST')]

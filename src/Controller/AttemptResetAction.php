@@ -7,7 +7,7 @@ namespace App\Controller;
 use App\Component\Assessment\AttemptResetter;
 use App\Controller\Base\AbstractController;
 use App\Entity\Attempt;
-use Symfony\Component\HttpKernel\Attribute\IsGranted;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
  * Talabaning urinishini tozalab, qayta topshirishga ruxsat beradi.

@@ -8,8 +8,8 @@ use App\Component\User\AccessDecider;
 use App\Controller\Base\AbstractController;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\IsGranted;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_ADMIN')]
 class UserRejectAction extends AbstractController

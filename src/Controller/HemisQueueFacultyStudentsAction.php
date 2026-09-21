@@ -8,8 +8,8 @@ use App\Component\Organization\Hemis\Message\SyncFacultyStudentsMessage;
 use App\Controller\Base\AbstractController;
 use App\Repository\FacultyRepository;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\IsGranted;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
