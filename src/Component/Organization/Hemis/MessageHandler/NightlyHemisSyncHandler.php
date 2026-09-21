@@ -14,9 +14,10 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Fakultetlarni yangilaydi va HEMIS'ga bog'langan har fakultet uchun bitta
- * SyncFacultyStudentsMessage tashlaydi (14 ta xabar, mingtalab emas). Lock —
- * oldingi tunning ishi tugamagan bo'lsa, ustidan yugurmaydi.
+ * Fakultetlarni va tyutor-guruh biriktiruvlarini yangilaydi, so'ng HEMIS'ga
+ * bog'langan har fakultet uchun bitta SyncFacultyStudentsMessage tashlaydi
+ * (14 ta xabar, mingtalab emas). Lock — oldingi tunning ishi tugamagan
+ * bo'lsa, ustidan yugurmaydi.
  */
 #[AsMessageHandler]
 final readonly class NightlyHemisSyncHandler
@@ -42,6 +43,7 @@ final readonly class NightlyHemisSyncHandler
 
         try {
             $this->sync->syncFaculties();
+            $this->sync->syncTutors();
             $faculties = $this->facultyRepository->findLinkedToHemis();
 
             foreach ($faculties as $faculty) {

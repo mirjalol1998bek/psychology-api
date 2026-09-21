@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Component\User;
 
+use App\Component\Organization\Hemis\Dto\HemisEmployee;
 use App\Component\User\Hemis\HemisProfile;
 use App\Entity\StudyGroup;
 use App\Entity\User;
@@ -40,6 +41,26 @@ class UserFactory
         if ($studyGroup !== null) {
             $user->setStudyGroup($studyGroup);
         }
+
+        return $user;
+    }
+
+    /**
+     * Tyutor guruh-biriktiruvi HEMIS "employee-list"dan proaktiv keladi —
+     * xodim hali tizimga bir marta ham kirmagan bo'lishi mumkin. `applyAccessPolicy`
+     * dagi xodim shoxobchasi bilan bir xil: pending, rolsiz — keyin admin
+     * ROLE_TUTOR beradi. OAuth orqali kirganda `hemisId` bo'yicha topilib,
+     * shu yozuv qayta ishlatiladi (`HemisLoginService`).
+     */
+    public function createFromHemisEmployee(HemisEmployee $item): User
+    {
+        $user = $this->create($item->hemisId . '@hemis.uzswlu.uz', bin2hex(random_bytes(16)));
+        $user->setHemisId($item->hemisId);
+        $user->setFullName($item->fullName);
+        $user->setImage($item->image);
+        $user->setIsActive(true);
+        $user->setStatus(UserStatusEnum::Pending);
+        $user->setRoles([]);
 
         return $user;
     }

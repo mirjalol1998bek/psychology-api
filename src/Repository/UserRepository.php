@@ -51,6 +51,24 @@ class UserRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Tyutorga biriktirilgan barcha guruhlar talabalari.
+     *
+     * @return list<User>
+     */
+    public function findByTutor(int $tutorId): array
+    {
+        return $this->createQueryBuilder('u')
+            ->join('u.studyGroup', 'g')
+            ->andWhere('g.tutor = :tutor')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('tutor', $tutorId)
+            ->orderBy('g.name', 'ASC')
+            ->addOrderBy('u.fullName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countStudentsByFaculty(int $facultyId): int
     {
         return (int) $this->createQueryBuilder('u')

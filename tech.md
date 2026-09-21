@@ -355,8 +355,10 @@ private function findBestSplitPosition(string $content): int
 
 ### 10.1 Enum'lar (`src/Enum/`)
 
-- `RoleEnum: string` — `ROLE_STUDENT`, `ROLE_PSYCHOLOGIST`, `ROLE_ADMIN`
-  (Symfony `roles[]` bilan mos).
+- `RoleEnum: string` — `ROLE_STUDENT`, `ROLE_PSYCHOLOGIST`, `ROLE_ADMIN`,
+  `ROLE_TUTOR` (Symfony `roles[]` bilan mos). `ROLE_TUTOR` hierarxiyaga
+  kirmaydi (`isStaff()=false`) — faqat `StudyGroup.tutor` orqali o'z
+  guruhi talabalari ro'yxatini ko'radi ([`study-group.md`](docs/study-group.md)).
 - `StudyLanguage: string` — `uz`, `ru`
 - **`InstrumentType: string`** — **ballash algoritmi** (metodika turi emas).
   Oddiy (subshkalasiz) yangi metodika (Ibodullayev shkalasi kabi) qo'shish —

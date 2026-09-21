@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Component\Organization\Hemis;
 
+use App\Component\Organization\Hemis\Dto\HemisEmployee;
 use App\Component\Organization\Hemis\Dto\HemisFaculty;
 use App\Component\Organization\Hemis\Dto\HemisGroup;
 use App\Component\Organization\Hemis\Dto\HemisStudent;
+use App\Component\Organization\Hemis\Dto\HemisTutorGroup;
 use App\Component\User\Hemis\HemisAuthException;
 use App\Component\User\Hemis\HemisConfig;
 use App\Enum\StudyLanguage;
@@ -93,6 +95,73 @@ final class HemisApiClient
     public function fetchFacultyStudents(string $facultyExternalId): array
     {
         return $this->mapStudents($this->collect('/data/student-list', ['_department' => $facultyExternalId]));
+    }
+
+    /**
+     * Tyutorlar — "employee-list"dan `tutorGroups` bo'sh bo'lmagan faol xodimlar.
+     * Bitta xodim bir nechta shtat yozuviga ega bo'lishi mumkin (turli lavozim/
+     * bo'lim) — shu sabab `employee_id_number` bo'yicha guruhlab, tutorGroups
+     * birlashtiriladi.
+     *
+     * @return list<HemisEmployee>
+     */
+    public function fetchTutors(): array
+    {
+        $byHemisId = [];
+
+        foreach ($this->collect('/data/employee-list', ['type' => 'employee']) as $item) {
+            $groups = $this->mapTutorGroups($item['tutorGroups'] ?? []);
+            $hemisId = (string) ($item['employee_id_number'] ?? '');
+
+            if ($groups === [] || $hemisId === '' || ($item['active'] ?? true) !== true) {
+                continue;
+            }
+
+            $byHemisId[$hemisId] = new HemisEmployee(
+                $hemisId,
+                (string) ($item['full_name'] ?? ''),
+                $this->nullableString($item['image_full'] ?? $item['image'] ?? null),
+                $this->mergeTutorGroups($byHemisId[$hemisId]->tutorGroups ?? [], $groups),
+            );
+        }
+
+        return array_values($byHemisId);
+    }
+
+    /**
+     * @param list<HemisTutorGroup> $existing
+     * @param list<HemisTutorGroup> $incoming
+     * @return list<HemisTutorGroup>
+     */
+    private function mergeTutorGroups(array $existing, array $incoming): array
+    {
+        $byExternalId = [];
+
+        foreach ([...$existing, ...$incoming] as $group) {
+            $byExternalId[$group->externalId] = $group;
+        }
+
+        return array_values($byExternalId);
+    }
+
+    /**
+     * @return list<HemisTutorGroup>
+     */
+    private function mapTutorGroups(mixed $raw): array
+    {
+        if (is_array($raw) === false) {
+            return [];
+        }
+
+        $groups = [];
+
+        foreach ($raw as $item) {
+            if (is_array($item) && isset($item['id'], $item['name'])) {
+                $groups[] = new HemisTutorGroup((string) $item['id'], (string) $item['name']);
+            }
+        }
+
+        return $groups;
     }
 
     /**

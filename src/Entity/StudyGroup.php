@@ -76,6 +76,11 @@ class StudyGroup implements CreatedAtSettableInterface, UpdatedAtSettableInterfa
     #[ORM\OneToMany(mappedBy: 'studyGroup', targetEntity: User::class)]
     private Collection $students;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['study-group:read', 'study-group:write'])]
+    private ?User $tutor = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['study-group:read'])]
     private ?DateTimeInterface $createdAt = null;
@@ -153,5 +158,17 @@ class StudyGroup implements CreatedAtSettableInterface, UpdatedAtSettableInterfa
     public function getStudentCount(): int
     {
         return $this->students->count();
+    }
+
+    public function getTutor(): ?User
+    {
+        return $this->tutor;
+    }
+
+    public function setTutor(?User $tutor): self
+    {
+        $this->tutor = $tutor;
+
+        return $this;
     }
 }

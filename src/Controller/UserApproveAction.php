@@ -12,7 +12,7 @@ use App\Enum\RoleEnum;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\IsGranted;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -42,7 +42,9 @@ class UserApproveAction extends AbstractController
         $role = RoleEnum::tryFrom($this->readRequestedRole($request));
 
         if ($role === null || $role === RoleEnum::Student) {
-            throw new BadRequestHttpException('Rol faqat ROLE_PSYCHOLOGIST yoki ROLE_ADMIN bo\'lishi mumkin.');
+            throw new BadRequestHttpException(
+                'Rol faqat ROLE_PSYCHOLOGIST, ROLE_ADMIN yoki ROLE_TUTOR bo\'lishi mumkin.',
+            );
         }
 
         return $role;

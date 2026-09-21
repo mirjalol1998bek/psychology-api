@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace App\Component\Organization\Hemis;
 
+use App\Component\Organization\Hemis\Dto\HemisEmployee;
 use App\Component\Organization\Hemis\Dto\HemisGroup;
 use App\Component\Organization\Hemis\Dto\HemisStudent;
+use App\Component\Organization\Hemis\Dto\HemisTutorGroup;
 use App\Component\Organization\FacultyManager;
 use App\Component\Organization\OrganizationFactory;
 use App\Component\Organization\StudentFactory;
 use App\Component\Organization\StudyGroupManager;
+use App\Component\User\UserFactory;
 use App\Component\User\UserManager;
 use App\Entity\Faculty;
 use App\Entity\StudyGroup;
+use App\Entity\User;
 use App\Repository\FacultyRepository;
 use App\Repository\StudyGroupRepository;
 use App\Repository\UserRepository;
@@ -41,6 +45,7 @@ final class HemisOrganizationSync
         private readonly UserRepository $userRepository,
         private readonly OrganizationFactory $organizationFactory,
         private readonly StudentFactory $studentFactory,
+        private readonly UserFactory $userFactory,
         private readonly FacultyManager $facultyManager,
         private readonly StudyGroupManager $studyGroupManager,
         private readonly UserManager $userManager,
@@ -145,6 +150,60 @@ final class HemisOrganizationSync
         $this->studyGroupRepository->pruneEmptyHemisGroups($this->requireFaculty($facultyId));
 
         return $counts;
+    }
+
+    /**
+     * Tyutorlar — "employee-list"dan proaktiv sinxron: guruhga tyutor
+     * biriktirilishi uchun xodim hali tizimga kirmagan bo'lsa ham `pending`
+     * hisob yaratiladi (admin keyin `ROLE_TUTOR` beradi), mavjud bo'lsa
+     * guruh biriktiruvi yangilanadi.
+     */
+    public function syncTutors(): SyncCounts
+    {
+        $counts = new SyncCounts();
+
+        foreach ($this->api->fetchTutors() as $item) {
+            $this->upsertTutor($item, $counts);
+        }
+
+        $this->entityManager->flush();
+
+        return $counts;
+    }
+
+    private function upsertTutor(HemisEmployee $item, SyncCounts $counts): void
+    {
+        $tutor = $this->userRepository->findOneBy(['hemisId' => $item->hemisId]);
+
+        if ($tutor === null) {
+            $tutor = $this->userFactory->createFromHemisEmployee($item);
+            $counts->created++;
+        } else {
+            $tutor->setFullName($item->fullName);
+            $counts->updated++;
+        }
+
+        if ($item->image !== null) {
+            $tutor->setImage($item->image);
+        }
+
+        $this->userManager->save($tutor);
+        $this->linkTutorGroups($tutor, $item->tutorGroups);
+    }
+
+    /**
+     * @param list<HemisTutorGroup> $tutorGroups
+     */
+    private function linkTutorGroups(User $tutor, array $tutorGroups): void
+    {
+        foreach ($tutorGroups as $group) {
+            $studyGroup = $this->studyGroupRepository->findOneBy(['externalId' => $group->externalId]);
+
+            if ($studyGroup !== null) {
+                $studyGroup->setTutor($tutor);
+                $this->studyGroupManager->save($studyGroup);
+            }
+        }
     }
 
     private function requireFaculty(int $id): Faculty

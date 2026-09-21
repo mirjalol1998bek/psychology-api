@@ -26,6 +26,12 @@ TLS: `config/certs/hemis-ca-chain.pem` (HEMIS oraliq sertifikatni yubormaydi).
   **to'plab import qilinmaydi** — admin kerakligini tanlaydi.
 - `data/student-list?_group=<groupExtId>` — bitta guruhning **hozir o'qiyotgan**
   (`studentStatus.code === "11"`) talabalari. `student_id_number` → `User.hemisId`.
+- `data/employee-list?type=employee` — xodimlar, har birida `tutorGroups`
+  (`list<{id,name,educationLang}>`) — tyutor sifatida biriktirilgan guruhlar.
+  **Diqqat:** bitta xodim bir nechta shtat yozuviga ega bo'lishi mumkin (turli
+  lavozim/bo'lim) — sahifalashda **bir nechta marta** qaytadi, har safar bir
+  xil `tutorGroups` bilan. `employee_id_number` bo'yicha guruhlab, tutorGroups
+  birlashtiriladi (`HemisApiClient::fetchTutors()`).
 - **`data/student-list?_department=<facultyExtId>`** — fakultetning **barcha**
   hozirgi talabalari (sahifalangan). Har yozuvda `group.id` / `group.name` /
   `group.educationLang` bor. **Asosiy yo'l:** guruhlarni shundan yig'amiz —
@@ -40,10 +46,20 @@ TLS: `config/certs/hemis-ca-chain.pem` (HEMIS oraliq sertifikatni yubormaydi).
 | `Faculty.externalId` | department `id` | `name` |
 | `StudyGroup.externalId` (UNIQUE) | group `id` | `name`, `studyLanguage`, `faculty` |
 | `User.hemisId` | `student_id_number` | `fullName`, `image`, `studyGroup` |
+| `User.hemisId` (tyutor) | `employee_id_number` | `fullName`, `image`; `StudyGroup.tutor` (har `tutorGroups` a'zosi uchun) |
 
 Yangi talaba: `StudentFactory` (email `{student_id_number}@students.uzswlu.uz`,
 tasodifiy parol, `ROLE_STUDENT`, `status=active`). **Mavjud foydalanuvchining
 roli/holati o'zgartirilmaydi.**
+
+Yangi tyutor: `UserFactory::createFromHemisEmployee()` (email
+`{employee_id_number}@hemis.uzswlu.uz`, `status=pending`, `roles=[]` — xuddi
+OAuth orqali kirgan xodim kabi, [`hemis-auth.md`](hemis-auth.md)). Admin
+keyin `POST /api/users/{id}/approve {"role":"ROLE_TUTOR"}` bilan tasdiqlaydi.
+Xodim keyin HEMIS orqali o'zi kirsa, `hemisId` bo'yicha **shu yozuv**
+qayta ishlatiladi (rol/holat saqlanadi). Guruh biriktiruvi mavjud
+`StudyGroup`larga (`externalId` bo'yicha) darhol o'rnatiladi — guruh hali
+import qilinmagan bo'lsa, o'sha biriktiruv o'tkazib yuboriladi.
 
 ## Endpointlar (`ROLE_ADMIN`)
 
@@ -55,6 +71,7 @@ roli/holati o'zgartirilmaydi.**
 | `GET /api/admin/hemis/faculties/{id}/groups` | fakultetning HEMIS guruhlari (ro'yxat, **saqlanmaydi**) |
 | `POST /api/admin/hemis/faculties/{id}/groups/{groupExternalId}` | bitta guruhni import + talabalarini sinxronlash → `{created, updated}` |
 | `POST /api/admin/hemis/groups/{id}/students` | bitta guruh talabalarini qayta sinxronlash |
+| `POST /api/admin/hemis/tutors` | tyutorlarni + guruh biriktiruvlarini sinxronlash (sinxron, `{created, updated}`) |
 
 ## CLI
 
@@ -79,6 +96,8 @@ u **Symfony Messenger** orqali navbatga qo'yiladi va worker birma-bir bajaradi.
 2. `NightlyHemisSyncHandler`:
    - `LockFactory` (`hemis-nightly-sync`, 7200s) — ikki marta parallel ishlamaydi.
    - `syncFaculties()` — fakultetlarni yangilaydi.
+   - `syncTutors()` — tyutorlar + guruh biriktiruvlarini yangilaydi (sinxron,
+     navbatga qo'yilmaydi — xodimlar soni talabalarnikidan ancha kam).
    - HEMIS'ga bog'langan **har fakultet** uchun (`FacultyRepository::findLinkedToHemis()`)
      bitta `SyncFacultyStudentsMessage` dispatch qiladi (14 ta xabar, mingtalab emas).
 3. `SyncFacultyStudentsHandler` — `syncFacultyStudents(Faculty)`:
