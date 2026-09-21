@@ -170,7 +170,7 @@ class User implements
     private ?string $hemisId = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
-    #[Groups(['user:read', 'users:read', 'user:put:write', 'student:create', 'attempt:read', 'appeal:read:staff', 'passport:read:staff'])]
+    #[Groups(['user:read', 'users:read', 'user:put:write', 'student:create', 'attempt:read', 'appeal:read:staff', 'passport:read:staff', 'observation-card:read'])]
     private ?string $fullName = null;
 
     #[ORM\Column(type: Types::STRING, length: 8, nullable: true, enumType: StudyLanguage::class)]
@@ -190,7 +190,7 @@ class User implements
     private UserStatusEnum $status = UserStatusEnum::Active;
 
     #[ORM\ManyToOne(targetEntity: StudyGroup::class, inversedBy: 'students')]
-    #[Groups(['user:read', 'users:read', 'student:create', 'appeal:read:staff', 'passport:read:staff'])]
+    #[Groups(['user:read', 'users:read', 'student:create', 'appeal:read:staff', 'passport:read:staff', 'observation-card:read'])]
     private ?StudyGroup $studyGroup = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

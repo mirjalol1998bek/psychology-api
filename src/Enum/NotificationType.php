@@ -13,4 +13,5 @@ enum NotificationType: string
     case AppealAppointmentBooked = 'appeal_appointment_booked';
     case AccessRequest = 'access_request';
     case AccessApproved = 'access_approved';
+    case ObservationAlert = 'observation_alert';
 }

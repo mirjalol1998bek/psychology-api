@@ -64,3 +64,9 @@ Frontend login sahifasidagi "Login va parol" — shu hisoblar bilan.
 
 Seed'ga kiritilmagan (rasmiy savol matni kerak). Qo'shish tartibi —
 [`assessment-scoring.md`](assessment-scoring.md) "Yangi metodika qo'shish".
+
+## 10-metodika (Kuzatuv kartasi) — bu yerda YO'Q
+
+`ObservationCard` `ask:seed:assessments`ga kirmaydi — u `Category`/`Quiz`
+emas (tyutor to'ldiradi, guruhga biriktirilmaydi). Butunlay alohida:
+[`observation-card.md`](observation-card.md).

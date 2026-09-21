@@ -16,6 +16,8 @@ User(psixolog) 1───* AppointmentSlot *───0..1 User(student)
 User(student) 1───* Appeal *───0..1 User(psixolog, javob bergan)
 User(student) 1───1 StudentPassport
 User 1───* Notification
+StudyGroup *───1 User(tutor)              (many-to-one, HEMIS'dan sinxron)
+User(tutor) 1───* ObservationCard *───1 User(student)  (Category/Quiz/Attempt'dan mustaqil — observation-card.md)
 ```
 
 ## Rollar (`RoleEnum`, Symfony `roles[]`)

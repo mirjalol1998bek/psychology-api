@@ -62,7 +62,7 @@ class StudyGroup implements CreatedAtSettableInterface, UpdatedAtSettableInterfa
 
     #[ORM\Column(type: Types::STRING, length: 64)]
     #[Assert\NotBlank]
-    #[Groups(['study-group:read', 'study-group:write', 'user:read', 'attempt:read', 'passport:read:staff'])]
+    #[Groups(['study-group:read', 'study-group:write', 'user:read', 'attempt:read', 'passport:read:staff', 'observation-card:read'])]
     private string $name = '';
 
     #[ORM\Column(type: Types::STRING, enumType: StudyLanguage::class)]

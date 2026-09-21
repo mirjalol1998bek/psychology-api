@@ -414,6 +414,7 @@ private function findBestSplitPosition(string $content): int
 | `Appeal` | Talaba → psixolog murojaati + javob. | `docs/appeal.md` |
 | `StudentPassport` | Ijtimoiy-psixologik pasport so'rovnomasi. | `docs/student-passport.md` |
 | `Notification` | Foydalanuvchiga bildirishnoma. | `docs/notification.md` |
+| `ObservationCard` | 10-metodika — tyutor talaba haqida to'ldiradi, Category/Quiz/Attempt'dan mustaqil. | `docs/observation-card.md` |
 
 ### 10.3 `User` kengaytmasi
 

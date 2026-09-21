@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Component\Notification;
 
 use App\Entity\Appeal;
+use App\Entity\ObservationCard;
 use App\Entity\User;
 use App\Enum\NotificationType;
 use App\Enum\RoleEnum;
@@ -104,6 +105,29 @@ final class NotificationDispatcher
             '/appeals/' . $appeal->getId(),
         );
         $this->notificationManager->save($notification, true);
+    }
+
+    /**
+     * Kuzatuv kartasida 9-ko'rsatkich (xulq-atvordagi keskin o'zgarishlar)
+     * 3 ball bilan baholanganda — psixolog/admin darhol xabardor qilinadi
+     * (rasmiy qoida, [`observation-card.md`](../../../docs/observation-card.md)).
+     */
+    public function notifyStaffOnObservationAlert(ObservationCard $card): void
+    {
+        $recipients = $this->staffRecipients();
+        $lastIndex = count($recipients) - 1;
+        $studentName = $card->getStudent()?->getFullName() ?? 'Talaba';
+
+        foreach ($recipients as $index => $recipient) {
+            $notification = $this->notificationFactory->create(
+                $recipient,
+                NotificationType::ObservationAlert,
+                'Kuzatuv kartasi: darhol e\'tibor kerak',
+                $studentName . ' bo\'yicha xulq-atvordagi keskin o\'zgarish qayd etildi — darhol individual suhbat tavsiya etiladi.',
+                '/observation-cards/' . $card->getId(),
+            );
+            $this->notificationManager->save($notification, $index === $lastIndex);
+        }
     }
 
     /**
