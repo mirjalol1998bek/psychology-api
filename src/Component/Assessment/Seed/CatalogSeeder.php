@@ -7,6 +7,7 @@ namespace App\Component\Assessment\Seed;
 use App\Component\Assessment\AssessmentFactory;
 use App\Component\Assessment\CategoryManager;
 use App\Component\Assessment\QuizManager;
+use App\Component\Assessment\Scoring\ScoreScaleScorer;
 use App\Entity\Category;
 use App\Entity\Quiz;
 use App\Enum\InstrumentType;
@@ -27,6 +28,8 @@ final class CatalogSeeder
         private readonly Ipm20Data $ipm20,
         private readonly Okm20Data $okm20,
         private readonly Ehs20Data $ehs20,
+        private readonly Ksm20Data $ksm20,
+        private readonly Xo20Data $xo20,
     ) {
     }
 
@@ -42,6 +45,8 @@ final class CatalogSeeder
         $created[] = $this->seedIpm20();
         $created[] = $this->seedOkm20();
         $created[] = $this->seedEhs20();
+        $created[] = $this->seedKsm20();
+        $created[] = $this->seedXo20();
 
         return array_values(array_filter($created, static fn (?string $name): bool => $name !== null));
     }
@@ -397,6 +402,185 @@ final class CatalogSeeder
         }
 
         foreach ($this->ehs20->subscaleInterpretationsRu() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Russian, $data['title'], $data['text'], $data['rangeKey']);
+        }
+    }
+
+    private function seedKsm20(): ?string
+    {
+        $name = 'KSM-20: Kommunikativ xususiyatlar va shaxslararo munosabatlar so\'rovnomasi';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::ScoreScaleCommunication, 8);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillKsm20Questions($quizUz, $this->ksm20->questionsUz(), Ksm20Data::OPTIONS_UZ);
+        $quizRu = $this->factory->createQuiz(
+            $category,
+            'КСМ-20: Опросник коммуникативных особенностей и межличностных отношений',
+            StudyLanguage::Russian,
+        );
+        $this->fillKsm20Questions($quizRu, $this->ksm20->questionsRu(), Ksm20Data::OPTIONS_RU);
+
+        $this->addKsm20Ranges($category);
+        $this->addKsm20Interpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<array{text: string, subscale: string, rangeKey: string}> $questions
+     * @param list<string>                                                  $options
+     */
+    private function fillKsm20Questions(Quiz $quiz, array $questions, array $options): void
+    {
+        $position = 0;
+
+        foreach ($questions as $questionData) {
+            $position++;
+            $question = $this->factory->createQuestion(
+                $quiz,
+                QuestionType::Scale,
+                $questionData['text'],
+                $position,
+                $questionData['subscale'],
+                1,
+                $questionData['rangeKey'],
+            );
+            $score = 0;
+
+            foreach ($options as $label) {
+                $score++;
+                $this->factory->createOption($question, $label, $score, null);
+            }
+
+            $quiz->addQuestion($question);
+        }
+    }
+
+    /** KSM-20'da umumiy ScoreRange (subscaleKey='') ataylab yaratilmaydi —
+     * shu holatni ScoreScaleScorer avtomatik aniqlab, umumiy ball o'rniga
+     * faqat subshkala breakdown qaytaradi. */
+    private function addKsm20Ranges(Category $category): void
+    {
+        foreach ($this->ksm20->subscaleRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], $range['rangeKey']);
+        }
+    }
+
+    private function addKsm20Interpretations(Category $category): void
+    {
+        $noOverallUz = $this->ksm20->noOverallInterpretationUz();
+        $this->factory->createInterpretation(
+            $category,
+            ScoreScaleScorer::NO_OVERALL_RESULT_KEY,
+            StudyLanguage::Uzbek,
+            $noOverallUz['title'],
+            $noOverallUz['text'],
+        );
+
+        $noOverallRu = $this->ksm20->noOverallInterpretationRu();
+        $this->factory->createInterpretation(
+            $category,
+            ScoreScaleScorer::NO_OVERALL_RESULT_KEY,
+            StudyLanguage::Russian,
+            $noOverallRu['title'],
+            $noOverallRu['text'],
+        );
+
+        foreach ($this->ksm20->subscaleInterpretationsUz() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Uzbek, $data['title'], $data['text'], $data['rangeKey']);
+        }
+
+        foreach ($this->ksm20->subscaleInterpretationsRu() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Russian, $data['title'], $data['text'], $data['rangeKey']);
+        }
+    }
+
+    private function seedXo20(): ?string
+    {
+        $name = 'XO-20: Xatar omillari skrining so\'rovnomasi';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::ScoreScaleRisk, 9);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillXo20Questions($quizUz, $this->xo20->questionsUz(), Xo20Data::OPTIONS_UZ);
+        $quizRu = $this->factory->createQuiz(
+            $category,
+            'ФР-20: Опросник скрининга факторов риска',
+            StudyLanguage::Russian,
+        );
+        $this->fillXo20Questions($quizRu, $this->xo20->questionsRu(), Xo20Data::OPTIONS_RU);
+
+        $this->addXo20Ranges($category);
+        $this->addXo20Interpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<array{text: string, subscale: string, rangeKey: string}> $questions
+     * @param list<string>                                                  $options
+     */
+    private function fillXo20Questions(Quiz $quiz, array $questions, array $options): void
+    {
+        $position = 0;
+
+        foreach ($questions as $questionData) {
+            $position++;
+            $question = $this->factory->createQuestion(
+                $quiz,
+                QuestionType::Scale,
+                $questionData['text'],
+                $position,
+                $questionData['subscale'],
+                1,
+                $questionData['rangeKey'],
+            );
+            $score = 0;
+
+            foreach ($options as $label) {
+                $score++;
+                $this->factory->createOption($question, $label, $score, null);
+            }
+
+            $quiz->addQuestion($question);
+        }
+    }
+
+    private function addXo20Ranges(Category $category): void
+    {
+        foreach ($this->xo20->overallRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key']);
+        }
+
+        foreach ($this->xo20->subscaleRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], $range['rangeKey']);
+        }
+    }
+
+    private function addXo20Interpretations(Category $category): void
+    {
+        foreach ($this->xo20->overallInterpretationsUz() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text']);
+        }
+
+        foreach ($this->xo20->overallInterpretationsRu() as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text']);
+        }
+
+        foreach ($this->xo20->subscaleInterpretationsUz() as $data) {
+            $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Uzbek, $data['title'], $data['text'], $data['rangeKey']);
+        }
+
+        foreach ($this->xo20->subscaleInterpretationsRu() as $data) {
             $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Russian, $data['title'], $data['text'], $data['rangeKey']);
         }
     }

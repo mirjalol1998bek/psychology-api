@@ -65,6 +65,29 @@ ba'zi subshkalalar **musbat**, ba'zilari **manfiy** qo'shiladi:
   `sumScore()` aynan `(A+B)-(C+D)` ni beradi, `ScoreRange` esa manfiy
   qiymatlarni ham qabul qiladi (masalan `−40..−11`).
 
+### Umumiy ballsiz subshkalali metodika (masalan KSM-20)
+
+Ba'zi so'rovnomalarda yagona UMUMIY ko'rsatkich mantiqan mavjud emas —
+natija faqat mustaqil subshkalalar bilan chiqadi (KSM-20: muloqotchanlik,
+empatiya, konfliktlilik, tashkilotchilik — birlashtirib bo'lmaydigan
+4 ta mustaqil xususiyat):
+
+- Bunday kategoriya uchun umumiy `ScoreRange` (`subscaleKey=''`) ataylab
+  **yaratilmaydi** — faqat subshkala `ScoreRange`lari bo'ladi.
+- `ScoreScaleScorer::score()` bunday holatni `hasOverallRange()` bilan
+  avtomatik aniqlaydi (kategoriyada `subscaleKey=''` bo'lgan `ScoreRange`
+  yo'qligini tekshiradi) va `ScoreScaleScorer::NO_OVERALL_RESULT_KEY`
+  (`'subscale_only'`) qiymatini `resultKey` sifatida, `null` ni `score`
+  sifatida qaytaradi — `sumScore()`/`matchRange()` umuman chaqirilmaydi.
+- Kategoriya uchun bitta `AssessmentInterpretation` (`subscaleKey=''`,
+  `resultKey='subscale_only'`, har til uchun) seed qilinadi — bu odatiy
+  "umumiy natija" o'rnini bosadigan, "natija subshkalalar bilan
+  ko'rsatilgan" degan umumiy izoh matni (frontendda katta sarlavha va
+  tavsif shu yerdan chiqadi).
+- Frontendda `score === null` bo'lsa "Umumiy ball" ko'rsatkichi
+  ko'rsatilmaydi (`TestResultView.vue`), faqat subshkala breakdown
+  chiqadi — kodga tegilmadi, chunki `score` allaqachon `?int` edi.
+
 `Tally` — value object (`array<string,int>` ni inkapsulyatsiya qiladi):
 `register`, `add`, `topKey`, `toBreakdown`.
 

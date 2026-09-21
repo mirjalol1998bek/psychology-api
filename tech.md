@@ -369,10 +369,12 @@ private function findBestSplitPosition(string $content): int
   - `SCORE_SCALE` — variant ballari yig'iladi → `ScoreRange` oralig'i → xulosa
     (masalan Ibodullayev shkalasi). Teskari (reverse) savollar
     `Question.getIsReversed()` orqali.
-  - `SCORE_SCALE_SUBSCALE` / `SCORE_SCALE_MOTIVATION` / `SCORE_SCALE_EMOTIONAL`
-    — xuddi `SCORE_SCALE` bilan bir xil ballash (`ScoreScaleScorer`), lekin
-    savollar `Question.subscaleKey` bo'yicha nomlangan subshkalalarga
-    guruhlanadi (IPM-20, OKM-20, EHS-20). Batafsil:
+  - `SCORE_SCALE_SUBSCALE` / `SCORE_SCALE_MOTIVATION` / `SCORE_SCALE_EMOTIONAL` /
+    `SCORE_SCALE_COMMUNICATION` / `SCORE_SCALE_RISK` — xuddi `SCORE_SCALE`
+    bilan bir xil ballash (`ScoreScaleScorer`), lekin savollar
+    `Question.subscaleKey` bo'yicha nomlangan subshkalalarga guruhlanadi
+    (IPM-20, OKM-20, EHS-20, XO-20). `SCORE_SCALE_COMMUNICATION` (KSM-20)
+    — umumiy ball yo'q, faqat subshkalalar. Batafsil:
     [`docs/assessment-scoring.md`](docs/assessment-scoring.md).
 - `QuestionType: string` — `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`,
   `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE`
@@ -566,7 +568,7 @@ Domen shakllari bo'yicha manba: `psychology-front/src/types/domain.ts`,
 - [x] `Appeal` (anonim/ismli) + javob, `Notification`, `StudentPassport`,
   `AppointmentSlot`
 - [x] `role_hierarchy`, State Provider/Processor'lar (talaba izolyatsiyasi)
-- [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, IPM-20, OKM-20, EHS-20
+- [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, IPM-20, OKM-20, EHS-20, KSM-20, XO-20
 - [x] `docs/` — barcha entity + jarayon hujjatlari
 
 - [x] HEMIS OAuth2 (`docs/hemis-auth.md` — authorization code oqimi,

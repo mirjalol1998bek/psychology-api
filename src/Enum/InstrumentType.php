@@ -17,4 +17,12 @@ enum InstrumentType: string
     case ScoreScaleMotivation = 'SCORE_SCALE_MOTIVATION';
     /** Xuddi shu — EHS-20 uchun (teng bo'lmagan subshkalalar + ERI = (A+B)-C). */
     case ScoreScaleEmotional = 'SCORE_SCALE_EMOTIONAL';
+    /** Xuddi shu — XO-20 uchun (5 subshkala + oddiy umumiy yig'indi, IPM-20 kabi). */
+    case ScoreScaleRisk = 'SCORE_SCALE_RISK';
+    /** Xuddi shu — KSM-20 uchun, lekin UMUMIY BALLSIZ: faqat 4 subshkala
+     * (birining o'zi — konfliktlilik — teskari yo'nalishda). Ballash
+     * mexanizmi bir xil, faqat kategoriya uchun umumiy ScoreRange
+     * yaratilmaydi — ScoreScaleScorer buni avtomatik aniqlab, umumiy ball
+     * o'rniga faqat subshkala breakdown qaytaradi. */
+    case ScoreScaleCommunication = 'SCORE_SCALE_COMMUNICATION';
 }

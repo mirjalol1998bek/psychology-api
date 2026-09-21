@@ -17,6 +17,8 @@ Idempotent: kategoriya nomi bo'yicha mavjud bo'lsa o'tkazib yuboradi.
 | `Ipm20Data` | IPM-20: 4 subshkala × 5 savol (uz/ru), subshkala bo'yicha 5–25 oraliq + umumiy talqin |
 | `Okm20Data` | OKM-20: 4 subshkala × 5 savol (uz/ru), ishorali umumiy indeks (IMI = (A+B) − (C+D)) |
 | `Ehs20Data` | EHS-20: 3 subshkala × savol (uz/ru), teng bo'lmagan subshkala o'lchami, ishorali umumiy indeks (ERI = (A+B) − C) |
+| `Ksm20Data` | KSM-20: 4 subshkala × 5 savol (uz/ru), **umumiy ball yo'q** (faqat subshkalalar; C — konfliktlilik — teskari ma'noli o'z jadvaliga ega) |
+| `Xo20Data` | XO-20: 5 subshkala × 4 savol (uz/ru), oddiy umumiy yig'indi (20–100); E — psixologik yordamga ehtiyoj — o'z jadvaliga ega |
 
 Yaratiladigan kategoriyalar:
 
@@ -28,6 +30,8 @@ Yaratiladigan kategoriyalar:
 | IPM-20 | `SCORE_SCALE_SUBSCALE` | uz + ru | 20 (`SCALE`, 1–5 ball) |
 | OKM-20 | `SCORE_SCALE_MOTIVATION` | uz + ru | 20 (`SCALE`, 1–5 ball) |
 | EHS-20 | `SCORE_SCALE_EMOTIONAL` | uz + ru | 20 (`SCALE`, 1–5 ball) |
+| KSM-20 | `SCORE_SCALE_COMMUNICATION` | uz + ru | 20 (`SCALE`, 1–5 ball) |
+| XO-20 | `SCORE_SCALE_RISK` | uz + ru | 20 (`SCALE`, 1–5 ball) |
 
 `AnswerOption.categoryKey`:
 - statements: "Ha" variantida blok kaliti (`Xolerik`/...), "Yo'q" da `null`

@@ -26,28 +26,56 @@ use App\Enum\InstrumentType;
  * (masalan OKM-20: IMI = (A+B) − (C+D) — C/D savollari −1 bilan qo'shiladi;
  * EHS-20: ERI = (A+B) − C). Subshkalaning o'z ballini o'zgartirmaydi,
  * standart +1.
+ *
+ * Ba'zi subshkalali metodikalarda (KSM-20) yagona UMUMIY ball ma'nosiz —
+ * natija faqat mustaqil subshkalalar bilan chiqadi. Bunday holatda
+ * kategoriya uchun umumiy `ScoreRange` (subscaleKey='') yaratilmaydi;
+ * shu holat aniqlansa, `NO_OVERALL_RESULT_KEY` qaytariladi va
+ * `AssessmentInterpretation`dan shu kalit bilan (subscaleKey='') umumiy
+ * xulosa matni topiladi — u faqat "natija subshkalalar bilan ko'rsatiladi"
+ * kabi umumiy izoh beradi, ball esa `null` bo'ladi.
  */
 final class ScoreScaleScorer implements ScorerInterface
 {
+    public const NO_OVERALL_RESULT_KEY = 'subscale_only';
+
     public function supports(InstrumentType $instrumentType): bool
     {
         return $instrumentType === InstrumentType::ScoreScale
             || $instrumentType === InstrumentType::ScoreScaleSubscale
             || $instrumentType === InstrumentType::ScoreScaleMotivation
-            || $instrumentType === InstrumentType::ScoreScaleEmotional;
+            || $instrumentType === InstrumentType::ScoreScaleEmotional
+            || $instrumentType === InstrumentType::ScoreScaleRisk
+            || $instrumentType === InstrumentType::ScoreScaleCommunication;
     }
 
     public function score(Attempt $attempt): ScoredResult
     {
+        $subscaleTotals = $this->subscaleTotals($attempt);
+
+        if ($this->hasOverallRange($attempt) === false) {
+            return new ScoredResult(self::NO_OVERALL_RESULT_KEY, null, $this->subscaleBreakdown($attempt, $subscaleTotals));
+        }
+
         $total = $this->sumScore($attempt);
         $range = $this->matchRange($attempt, $total, '');
-        $subscaleTotals = $this->subscaleTotals($attempt);
 
         $breakdown = $subscaleTotals === []
             ? [new BreakdownItem('score', $total)]
             : $this->subscaleBreakdown($attempt, $subscaleTotals);
 
         return new ScoredResult($range->getResultKey(), $total, $breakdown);
+    }
+
+    private function hasOverallRange(Attempt $attempt): bool
+    {
+        foreach ($attempt->getQuiz()->getCategory()->getScoreRanges() as $range) {
+            if ($range->getSubscaleKey() === '') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function sumScore(Attempt $attempt): int
