@@ -58,20 +58,23 @@ final class StatisticsReporter
     }
 
     /**
-     * Har bir `SCORE_SCALE*` oilasidagi metodika (IPM-20, OKM-20, EHS-20, ...)
-     * — hozir mavjud Category'lardan olinadi, yangi metodika qo'shilganda
-     * bu yerga qo'l tegmasdan avtomatik chiqadi.
+     * Psixogeometrik/Temperament o'zining maxsus kartasi bor (`figures`/
+     * `temperaments`) — qolgan har qanday algoritm (SCORE_SCALE oilasi,
+     * DEMBO_RUBINSTEIN, kelajakdagi yangilari) shu yerda avtomatik
+     * "natija bor/yo'q" kartasiga chiqadi, hozir mavjud Category'lardan
+     * olinadi — yangi metodika qo'shilganda bu yerga qo'l tegmasdan ishlaydi.
      *
      * @return list<string>
      */
     private function scaleAlgos(): array
     {
+        $excluded = ['TEMPERAMENT_STATEMENTS', 'TEMPERAMENT_CHOICE', 'FIGURE_CHOICE'];
         $algos = [];
 
         foreach ($this->categoryRepository->findAll() as $category) {
             $value = $category->getInstrumentType()->value;
 
-            if (str_starts_with($value, 'SCORE_SCALE') && !in_array($value, $algos, true)) {
+            if (!in_array($value, $excluded, true) && !in_array($value, $algos, true)) {
                 $algos[] = $value;
             }
         }

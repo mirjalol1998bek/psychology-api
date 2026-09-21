@@ -375,10 +375,12 @@ private function findBestSplitPosition(string $content): int
     savollar `Question.subscaleKey` bo'yicha nomlangan subshkalalarga
     guruhlanadi (IPM-20, OKM-20, EHS-20, XO-20, QY-16). `SCORE_SCALE_
     COMMUNICATION` (KSM-20) va `SCORE_SCALE_VALUES` (QY-16) — umumiy ball
-    yo'q, faqat subshkalalar. Batafsil:
-    [`docs/assessment-scoring.md`](docs/assessment-scoring.md).
+    yo'q, faqat subshkalalar.
+  - `DEMBO_RUBINSTEIN` — `ScoreScaleScorer`dan mustaqil, o'z
+    `DemboRubinsteinScorer`i bilan (savol variantsiz, javob ikkita 0-100
+    qiymat). Batafsil: [`docs/assessment-scoring.md`](docs/assessment-scoring.md).
 - `QuestionType: string` — `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`,
-  `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE`
+  `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE`, `SLIDER_DUAL`
 - `AttemptStatus: string` — `not_started`, `in_progress`, `submitted`, `reviewed`
 - `AppointmentStatus: string` — `free`, `booked`, `cancelled`
 - `AppealMode: string` — `named`, `anonymous`
@@ -569,7 +571,7 @@ Domen shakllari bo'yicha manba: `psychology-front/src/types/domain.ts`,
 - [x] `Appeal` (anonim/ismli) + javob, `Notification`, `StudentPassport`,
   `AppointmentSlot`
 - [x] `role_hierarchy`, State Provider/Processor'lar (talaba izolyatsiyasi)
-- [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, IPM-20, OKM-20, EHS-20, KSM-20, XO-20, QY-16
+- [x] `ask:seed:assessments` — temperament uz/ru, psixogeometrik, IPM-20, OKM-20, EHS-20, KSM-20, XO-20, QY-16, Dembo–Rubinshteyn
 - [x] `docs/` — barcha entity + jarayon hujjatlari
 
 - [x] HEMIS OAuth2 (`docs/hemis-auth.md` — authorization code oqimi,

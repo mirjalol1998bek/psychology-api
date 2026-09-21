@@ -20,6 +20,7 @@
 | `TEMPERAMENT_CHOICE` | `CategoryTallyScorer` | Har savolga bitta javob; `option.categoryKey` bo'yicha sanaladi; argmax. | kategoriya → ball |
 | `FIGURE_CHOICE` | `FigureChoiceScorer` | Bitta figura tanlanadi; `option.categoryKey` (yo'q bo'lsa `text`) — natija. | bo'sh |
 | `SCORE_SCALE` | `ScoreScaleScorer` | Tanlangan variant ballari yig'iladi. Teskari savolda (`Question.getIsReversed()`) `(maxOptionScore + minOptionScore) - optionScore`. Yig'indi `ScoreRange` oralig'iga tushadi → `resultKey`. | Subshkalasiz: `[{label:'score', value: total}]`. Subshkalali (pastga qarang): har subshkala uchun bitta element |
+| `DEMBO_RUBINSTEIN` | `DemboRubinsteinScorer` | `ScoreScaleScorer`dan mustaqil — variant emas, har savol bitta chiziq, javobi `AttemptAnswer.textValue`da JSON `{"ob":int,"dd":int}`. `Question.overallSign=0` bo'lgan chiziq (demo/sog'liq) o'rtachaga qo'shilmaydi. | 3 element: OB o'rtachasi, DD o'rtachasi, farq (pastga qarang) |
 
 ### Subshkalali `SCORE_SCALE` (masalan IPM-20)
 
@@ -101,6 +102,22 @@ format). Ballash tomoni — oddiy `subscaleKey` bo'yicha yig'indi
 (`ScoreScaleScorer`, boshqa hech narsa o'zgarmagan): pozitsiya raqami
 qancha kichik bo'lsa (ya'ni talaba shu elementni yuqoriroqqa qo'ysa),
 uning subshkalasi (blok) yig'indisi shuncha kichik va ustuvor chiqadi.
+
+### Mustaqil Scorer (Dembo–Rubinshteyn) — `ScoreScaleScorer`dan tashqarida
+
+Ba'zi metodikalar `ScoreScaleScorer`ning "variant tanlash + yig'indi"
+mantig'iga umuman sig'maydi. Dembo–Rubinshteyn shkalalarida talaba har
+chiziqda IKKITA mustaqil 0-100 qiymat belgilaydi (× = hozirgi holat,
+— = xohlagan daraja) — bu `AnswerOption`siz, `AttemptAnswer.textValue`da
+JSON `{"ob":int,"dd":int}` sifatida saqlanadi (`QuestionType::SliderDual`,
+`hasOptions()=false`). Shu sabab alohida `DemboRubinsteinScorer implements
+ScorerInterface` yozilgan — `ScoreRange`/`AssessmentInterpretation`
+infratuzilmasi xuddi shunday qayta ishlatiladi (`subscaleKey='ob'`/`'dd'`/
+`'diff'` — 3 "virtual" guruh), lekin moslashtirish/yig'indi mantig'i
+o'zining ichida (`ScoreScaleScorer`ning `matchRange()`/`subscaleTotals()`
+metodlaridan foydalanilmaydi, chunki javob variant emas). Natija ham
+"umumiy ballsiz" (`ScoreScaleScorer::NO_OVERALL_RESULT_KEY` boshqa
+klassdan ham qayta ishlatiladi — bu shunchaki ochiq konstanta).
 
 `Tally` — value object (`array<string,int>` ni inkapsulyatsiya qiladi):
 `register`, `add`, `topKey`, `toBreakdown`.

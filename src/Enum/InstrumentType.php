@@ -32,4 +32,10 @@ enum InstrumentType: string
      * (kichik yig'indi = ustuvor blok). Frontendda maxsus "tartiblash"
      * interfeysi bilan render qilinadi (scale_choice emas). */
     case ScoreScaleValues = 'SCORE_SCALE_VALUES';
+    /** Dembo-Rubinshteyn shkalalari — `ScoreScaleScorer`dan MUSTAQIL, o'z
+     * `DemboRubinsteinScorer`i bilan. Savollar variant emas, har biri bitta
+     * chiziq — javob ikkita 0-100 qiymat (`SLIDER_DUAL`). Natija: o'zini
+     * baholash (OB) va da'vogarlik (DD) o'rtachasi + ular farqi — 3 mustaqil
+     * ko'rsatkich, umumiy ball yo'q (KSM-20/QY-16 kabi). */
+    case DemboRubinstein = 'DEMBO_RUBINSTEIN';
 }

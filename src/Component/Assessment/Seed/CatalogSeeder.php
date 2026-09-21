@@ -31,6 +31,7 @@ final class CatalogSeeder
         private readonly Ksm20Data $ksm20,
         private readonly Xo20Data $xo20,
         private readonly Qy16Data $qy16,
+        private readonly DemboRubinsteinData $demboRubinstein,
     ) {
     }
 
@@ -49,6 +50,7 @@ final class CatalogSeeder
         $created[] = $this->seedKsm20();
         $created[] = $this->seedXo20();
         $created[] = $this->seedQy16();
+        $created[] = $this->seedDemboRubinstein();
 
         return array_values(array_filter($created, static fn (?string $name): bool => $name !== null));
     }
@@ -677,6 +679,107 @@ final class CatalogSeeder
 
         foreach ($this->qy16->blockInterpretationsRu() as $data) {
             $this->factory->createInterpretation($category, $data['key'], StudyLanguage::Russian, $data['title'], $data['text'], $data['rangeKey']);
+        }
+    }
+
+    private function seedDemboRubinstein(): ?string
+    {
+        $name = 'Dembo–Rubinshteyn shkalalari: o\'zini baholash va da\'vogarlik darajasi';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::DemboRubinstein, 11);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillDemboRubinsteinQuestions($quizUz, $this->demboRubinstein->scalesUz());
+        $quizRu = $this->factory->createQuiz(
+            $category,
+            'Шкалы Дембо–Рубинштейн: самооценка и уровень притязаний',
+            StudyLanguage::Russian,
+        );
+        $this->fillDemboRubinsteinQuestions($quizRu, $this->demboRubinstein->scalesRu());
+
+        $this->addDemboRubinsteinRanges($category);
+        $this->addDemboRubinsteinInterpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<array{text: string, include: bool}> $scales
+     */
+    private function fillDemboRubinsteinQuestions(Quiz $quiz, array $scales): void
+    {
+        $position = 0;
+
+        foreach ($scales as $scaleData) {
+            $position++;
+            $question = $this->factory->createQuestion(
+                $quiz,
+                QuestionType::SliderDual,
+                $scaleData['text'],
+                $position,
+                $scaleData['text'],
+                $scaleData['include'] ? 1 : 0,
+            );
+            $quiz->addQuestion($question);
+        }
+    }
+
+    private function addDemboRubinsteinRanges(Category $category): void
+    {
+        foreach ($this->demboRubinstein->obRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], 'ob');
+        }
+
+        foreach ($this->demboRubinstein->ddRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], 'dd');
+        }
+
+        foreach ($this->demboRubinstein->diffRanges() as $range) {
+            $this->factory->createScoreRange($category, $range['min'], $range['max'], $range['key'], 'diff');
+        }
+    }
+
+    private function addDemboRubinsteinInterpretations(Category $category): void
+    {
+        $noOverallUz = $this->demboRubinstein->noOverallInterpretationUz();
+        $this->factory->createInterpretation(
+            $category,
+            ScoreScaleScorer::NO_OVERALL_RESULT_KEY,
+            StudyLanguage::Uzbek,
+            $noOverallUz['title'],
+            $noOverallUz['text'],
+        );
+
+        $noOverallRu = $this->demboRubinstein->noOverallInterpretationRu();
+        $this->factory->createInterpretation(
+            $category,
+            ScoreScaleScorer::NO_OVERALL_RESULT_KEY,
+            StudyLanguage::Russian,
+            $noOverallRu['title'],
+            $noOverallRu['text'],
+        );
+
+        $this->addDemboRubinsteinGroupInterpretations($category, 'ob', $this->demboRubinstein->obInterpretationsUz(), $this->demboRubinstein->obInterpretationsRu());
+        $this->addDemboRubinsteinGroupInterpretations($category, 'dd', $this->demboRubinstein->ddInterpretationsUz(), $this->demboRubinstein->ddInterpretationsRu());
+        $this->addDemboRubinsteinGroupInterpretations($category, 'diff', $this->demboRubinstein->diffInterpretationsUz(), $this->demboRubinstein->diffInterpretationsRu());
+    }
+
+    /**
+     * @param array<string, array{title: string, text: string}> $uz
+     * @param array<string, array{title: string, text: string}> $ru
+     */
+    private function addDemboRubinsteinGroupInterpretations(Category $category, string $subscaleKey, array $uz, array $ru): void
+    {
+        foreach ($uz as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Uzbek, $data['title'], $data['text'], $subscaleKey);
+        }
+
+        foreach ($ru as $key => $data) {
+            $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text'], $subscaleKey);
         }
     }
 
