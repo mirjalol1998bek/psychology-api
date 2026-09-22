@@ -21,6 +21,7 @@
 | `FIGURE_CHOICE` | `FigureChoiceScorer` | Bitta figura tanlanadi; `option.categoryKey` (yo'q bo'lsa `text`) — natija. | bo'sh |
 | `SCORE_SCALE` | `ScoreScaleScorer` | Tanlangan variant ballari yig'iladi. Teskari savolda (`Question.getIsReversed()`) `(maxOptionScore + minOptionScore) - optionScore`. Yig'indi `ScoreRange` oralig'iga tushadi → `resultKey`. | Subshkalasiz: `[{label:'score', value: total}]`. Subshkalali (pastga qarang): har subshkala uchun bitta element |
 | `DEMBO_RUBINSTEIN` | `DemboRubinsteinScorer` | `ScoreScaleScorer`dan mustaqil — variant emas, har savol bitta chiziq, javobi `AttemptAnswer.textValue`da JSON `{"ob":int,"dd":int}`. `Question.overallSign=0` bo'lgan chiziq (demo/sog'liq) o'rtachaga qo'shilmaydi. | 3 element: OB o'rtachasi, DD o'rtachasi, farq (pastga qarang) |
+| `SOCIOMETRY` | `SociometryScorer` | Individual attempt uchun ballash yo'q — har doim `NO_OVERALL_RESULT_KEY`, bo'sh breakdown. Haqiqiy tahlil guruh darajasida, `SociometryReporter` (`sociometry.md`, `Component/Assessment/Report/`) — bu klass `ScorerInterface`ga kirmaydi, chunki bitta Attempt emas, guruhning BARCHA Attemptlarini birlashtirib ishlaydi. | bo'sh |
 
 ### Subshkalali `SCORE_SCALE` (masalan IPM-20)
 
@@ -121,6 +122,16 @@ klassdan ham qayta ishlatiladi — bu shunchaki ochiq konstanta).
 
 `Tally` — value object (`array<string,int>` ni inkapsulyatsiya qiladi):
 `register`, `add`, `topKey`, `toBreakdown`.
+
+### Guruh darajasidagi tahlil (Sotsiometriya) — Scorer emas, alohida Reporter
+
+Sotsiometriyada bitta Attempt'ning o'zi hech narsa "anglatmaydi" — talaba
+guruhdoshlarini tanlaydi, va haqiqiy natija faqat BARCHA guruh a'zolarining
+tanlovlarini birlashtirib chiqadi (kim kimni tanladi — juftlik). Shu sabab
+`SociometryScorer` (individual attempt uchun, har doim bo'sh natija
+qaytaradi) va `SociometryReporter` (guruh darajasida, `ScorerInterface`dan
+umuman mustaqil — Attempt emas, StudyGroup qabul qiladi) ikkita ALOHIDA
+klass. To'liq tafsilot: [`sociometry.md`](sociometry.md).
 
 ## Yakuniy hisob — `AttemptSubmitter::submit()`
 

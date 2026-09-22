@@ -21,6 +21,7 @@ Idempotent: kategoriya nomi bo'yicha mavjud bo'lsa o'tkazib yuboradi.
 | `Xo20Data` | XO-20: 5 subshkala × 4 savol (uz/ru), oddiy umumiy yig'indi (20–100); E — psixologik yordamga ehtiyoj — o'z jadvaliga ega |
 | `Qy16Data` | QY-16: 16 qadriyat (ranjirlash, har biri o'z savoli, variantlari 1-16 o'rin), 4 blok, **umumiy ball yo'q** — blok yig'indisi qancha kichik, shuncha ustuvor |
 | `DemboRubinsteinData` | Dembo–Rubinshteyn: 7 shkala (1-chizig'i demo, o'rtachaga kirmaydi), har biri `AnswerOption`siz — javob 2 ta 0-100 qiymat (OB/DD) `textValue`da JSON |
+| `SociometryData` | Sotsiometriya: 3 mezon (savol), har biri `AnswerOption`siz — javob guruhdoshlar ID ro'yxati `textValue`da JSON. Individual natija yo'q — tahlil guruh darajasida ([`sociometry.md`](sociometry.md)) |
 
 Yaratiladigan kategoriyalar:
 
@@ -36,6 +37,7 @@ Yaratiladigan kategoriyalar:
 | XO-20 | `SCORE_SCALE_RISK` | uz + ru | 20 (`SCALE`, 1–5 ball) |
 | QY-16 | `SCORE_SCALE_VALUES` | uz + ru | 16 (`SCALE`, 1–16 o'rin) |
 | Dembo–Rubinshteyn | `DEMBO_RUBINSTEIN` | uz + ru | 7 (`SLIDER_DUAL`, variantsiz) |
+| Sotsiometrik tadqiqot | `SOCIOMETRY` | uz + ru | 3 (`PEER_CHOICE`, variantsiz) |
 
 `AnswerOption.categoryKey`:
 - statements: "Ha" variantida blok kaliti (`Xolerik`/...), "Yo'q" da `null`
@@ -43,6 +45,7 @@ Yaratiladigan kategoriyalar:
 - figure: figura kaliti (`Doira`/...), `imageUrl` = mdi ikona nomi
 - scale: `null` (faqat `score`, odatda 1–5)
 - slider_dual: variant umuman yo'q — javob `AttemptAnswer.textValue`da
+- peer_choice: variant umuman yo'q — javob (guruhdosh ID'lari) `AttemptAnswer.textValue`da
 
 ## `ask:seed:demo` — demo hisoblar
 

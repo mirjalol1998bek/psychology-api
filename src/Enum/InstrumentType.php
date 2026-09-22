@@ -38,4 +38,11 @@ enum InstrumentType: string
      * baholash (OB) va da'vogarlik (DD) o'rtachasi + ular farqi — 3 mustaqil
      * ko'rsatkich, umumiy ball yo'q (KSM-20/QY-16 kabi). */
     case DemboRubinstein = 'DEMBO_RUBINSTEIN';
+    /** Sotsiometrik tadqiqot — `ScoreScaleScorer`dan MUSTAQIL, `SociometryScorer`.
+     * 3 savol (mezon), har biri variantsiz (`PEER_CHOICE`) — javob guruhdoshlar
+     * ID ro'yxati (afzallik tartibida, ≤3 ta), `AttemptAnswer.textValue`da JSON.
+     * Individual attempt uchun shaxsiy natija YO'Q (talaba o'z natijasini
+     * ko'rmaydi — guruh darajasidagi tahlil faqat psixolog/admin uchun,
+     * `SociometryReporter`). */
+    case Sociometry = 'SOCIOMETRY';
 }

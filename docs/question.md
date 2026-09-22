@@ -5,7 +5,7 @@ Quiz ichidagi bitta savol.
 | Maydon | Tip | Izoh |
 |---|---|---|
 | `quiz` | ManyToOne `Quiz`, not null | |
-| `type` | `QuestionType` | `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`, `SINGLE_CHOICE_IMAGE`, `FIGURE`, `SCALE`, `WRITING`, `SLIDER_DUAL` (Dembo–Rubinshteyn — variantsiz, javob `textValue`da JSON `{"ob":int,"dd":int}`) |
+| `type` | `QuestionType` | `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`, `SINGLE_CHOICE_IMAGE`, `FIGURE`, `SCALE`, `WRITING`, `SLIDER_DUAL` (Dembo–Rubinshteyn — variantsiz, javob `textValue`da JSON `{"ob":int,"dd":int}`), `PEER_CHOICE` (Sotsiometriya — variantsiz, javob `textValue`da JSON `["userId", ...]`, afzallik tartibida ≤3 ta) |
 | `text` | text | |
 | `imageUrl` | ?string | |
 | `position` | smallint | |

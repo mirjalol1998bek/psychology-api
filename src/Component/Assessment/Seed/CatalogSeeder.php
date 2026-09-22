@@ -32,6 +32,7 @@ final class CatalogSeeder
         private readonly Xo20Data $xo20,
         private readonly Qy16Data $qy16,
         private readonly DemboRubinsteinData $demboRubinstein,
+        private readonly SociometryData $sociometry,
     ) {
     }
 
@@ -51,6 +52,7 @@ final class CatalogSeeder
         $created[] = $this->seedXo20();
         $created[] = $this->seedQy16();
         $created[] = $this->seedDemboRubinstein();
+        $created[] = $this->seedSociometry();
 
         return array_values(array_filter($created, static fn (?string $name): bool => $name !== null));
     }
@@ -781,6 +783,49 @@ final class CatalogSeeder
         foreach ($ru as $key => $data) {
             $this->factory->createInterpretation($category, $key, StudyLanguage::Russian, $data['title'], $data['text'], $subscaleKey);
         }
+    }
+
+    private function seedSociometry(): ?string
+    {
+        $name = 'Sotsiometrik tadqiqot';
+
+        if ($this->exists($name)) {
+            return null;
+        }
+
+        $category = $this->factory->createCategory($name, InstrumentType::Sociometry, 12);
+        $quizUz = $this->factory->createQuiz($category, $name, StudyLanguage::Uzbek);
+        $this->fillSociometryQuestions($quizUz, $this->sociometry->criteriaUz());
+        $quizRu = $this->factory->createQuiz($category, 'Социометрическое исследование', StudyLanguage::Russian);
+        $this->fillSociometryQuestions($quizRu, $this->sociometry->criteriaRu());
+
+        $this->addSociometryInterpretations($category);
+        $this->persist($category, [$quizUz, $quizRu]);
+
+        return $name;
+    }
+
+    /**
+     * @param list<string> $criteria
+     */
+    private function fillSociometryQuestions(Quiz $quiz, array $criteria): void
+    {
+        $position = 0;
+
+        foreach ($criteria as $text) {
+            $position++;
+            $question = $this->factory->createQuestion($quiz, QuestionType::PeerChoice, $text, $position);
+            $quiz->addQuestion($question);
+        }
+    }
+
+    private function addSociometryInterpretations(Category $category): void
+    {
+        $uz = $this->sociometry->noOverallInterpretationUz();
+        $this->factory->createInterpretation($category, ScoreScaleScorer::NO_OVERALL_RESULT_KEY, StudyLanguage::Uzbek, $uz['title'], $uz['text']);
+
+        $ru = $this->sociometry->noOverallInterpretationRu();
+        $this->factory->createInterpretation($category, ScoreScaleScorer::NO_OVERALL_RESULT_KEY, StudyLanguage::Russian, $ru['title'], $ru['text']);
     }
 
     /**

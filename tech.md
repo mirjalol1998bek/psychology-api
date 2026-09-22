@@ -381,8 +381,11 @@ private function findBestSplitPosition(string $content): int
   - `DEMBO_RUBINSTEIN` — `ScoreScaleScorer`dan mustaqil, o'z
     `DemboRubinsteinScorer`i bilan (savol variantsiz, javob ikkita 0-100
     qiymat). Batafsil: [`docs/assessment-scoring.md`](docs/assessment-scoring.md).
+  - `SOCIOMETRY` — Attempt/Quiz orqali yig'iladi, lekin individual natija
+    yo'q — tahlil guruhning BARCHA Attemptlarini birlashtirib,
+    `SociometryReporter`da (Scorer emas). Batafsil: [`docs/sociometry.md`](docs/sociometry.md).
 - `QuestionType: string` — `YES_NO`, `SINGLE_CHOICE`, `MULTI_SELECT`,
-  `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE`, `SLIDER_DUAL`
+  `SINGLE_CHOICE_IMAGE`, `FIGURE`, `WRITING`, `SCALE`, `SLIDER_DUAL`, `PEER_CHOICE`
 - `AttemptStatus: string` — `not_started`, `in_progress`, `submitted`, `reviewed`
 - `AppointmentStatus: string` — `free`, `booked`, `cancelled`
 - `AppealMode: string` — `named`, `anonymous`

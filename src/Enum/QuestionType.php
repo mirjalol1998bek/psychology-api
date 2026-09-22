@@ -18,9 +18,14 @@ enum QuestionType: string
      * javob `AttemptAnswer.textValue`da JSON `{"ob":int,"dd":int}` sifatida
      * saqlanadi. */
     case SliderDual = 'SLIDER_DUAL';
+    /** Sotsiometriya: bitta mezon (masalan "kim bilan birga ishlashni
+     * istardingiz?") — javob guruhdoshlar orasidan tanlangan ≤3 kishi ID'si,
+     * afzallik tartibida. Variantlari yo'q — `AttemptAnswer.textValue`da
+     * JSON `["12","45","78"]` sifatida saqlanadi. */
+    case PeerChoice = 'PEER_CHOICE';
 
     public function hasOptions(): bool
     {
-        return $this !== self::Writing && $this !== self::SliderDual;
+        return $this !== self::Writing && $this !== self::SliderDual && $this !== self::PeerChoice;
     }
 }
