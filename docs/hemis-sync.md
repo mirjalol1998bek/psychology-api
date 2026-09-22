@@ -52,14 +52,16 @@ Yangi talaba: `StudentFactory` (email `{student_id_number}@students.uzswlu.uz`,
 tasodifiy parol, `ROLE_STUDENT`, `status=active`). **Mavjud foydalanuvchining
 roli/holati o'zgartirilmaydi.**
 
-Yangi tyutor: `UserFactory::createFromHemisEmployee()` (email
-`{employee_id_number}@hemis.uzswlu.uz`, `status=pending`, `roles=[]` — xuddi
-OAuth orqali kirgan xodim kabi, [`hemis-auth.md`](hemis-auth.md)). Admin
-keyin `POST /api/users/{id}/approve {"role":"ROLE_TUTOR"}` bilan tasdiqlaydi.
-Xodim keyin HEMIS orqali o'zi kirsa, `hemisId` bo'yicha **shu yozuv**
-qayta ishlatiladi (rol/holat saqlanadi). Guruh biriktiruvi mavjud
-`StudyGroup`larga (`externalId` bo'yicha) darhol o'rnatiladi — guruh hali
-import qilinmagan bo'lsa, o'sha biriktiruv o'tkazib yuboriladi.
+Yangi tyutor: `UserFactory::createFromHemisEmployee()` bilan yaratiladi
+(email `{employee_id_number}@hemis.uzswlu.uz`). HEMIS o'zi bu xodimni shu
+guruhning tyutori deb tasdiqlab bergani uchun admin tasdig'i kutilmaydi —
+`HemisOrganizationSync::upsertTutor()` uni darhol `status=active`,
+`roles=[ROLE_TUTOR]` bilan faollashtiradi (faqat hali `pending`/rolsiz
+yozuvlar uchun — admin allaqachon boshqa rol/holat bergan bo'lsa, qayta
+yozilmaydi). Xodim keyin HEMIS orqali o'zi kirsa, `hemisId` bo'yicha **shu
+yozuv** qayta ishlatiladi. Guruh biriktiruvi mavjud `StudyGroup`larga
+(`externalId` bo'yicha) darhol o'rnatiladi — guruh hali import qilinmagan
+bo'lsa, o'sha biriktiruv o'tkazib yuboriladi.
 
 ## Endpointlar (`ROLE_ADMIN`)
 

@@ -17,6 +17,8 @@ use App\Component\User\UserManager;
 use App\Entity\Faculty;
 use App\Entity\StudyGroup;
 use App\Entity\User;
+use App\Enum\RoleEnum;
+use App\Enum\UserStatusEnum;
 use App\Repository\FacultyRepository;
 use App\Repository\StudyGroupRepository;
 use App\Repository\UserRepository;
@@ -154,9 +156,11 @@ final class HemisOrganizationSync
 
     /**
      * Tyutorlar — "employee-list"dan proaktiv sinxron: guruhga tyutor
-     * biriktirilishi uchun xodim hali tizimga kirmagan bo'lsa ham `pending`
-     * hisob yaratiladi (admin keyin `ROLE_TUTOR` beradi), mavjud bo'lsa
-     * guruh biriktiruvi yangilanadi.
+     * biriktirilishi uchun xodim hali tizimga kirmagan bo'lsa ham hisob
+     * yaratiladi. HEMIS o'zi ushbu xodimni shu guruhning tyutori deb
+     * tasdiqlab bergani uchun, admin tasdig'i kutilmaydi — `ROLE_TUTOR`
+     * bilan darhol faollashtiriladi (admin keyinroq boshqa rol/holat
+     * bergan bo'lsa, bu qayta yozilmaydi).
      */
     public function syncTutors(): SyncCounts
     {
@@ -181,6 +185,13 @@ final class HemisOrganizationSync
         } else {
             $tutor->setFullName($item->fullName);
             $counts->updated++;
+        }
+
+        // Admin hali qo'l tegizmagan (pending, rolsiz) yozuvni tyutor
+        // sifatida faollashtiramiz — o'zi rol/holat bergan bo'lsa, tegmaymiz.
+        if ($tutor->getStatus() === UserStatusEnum::Pending && $tutor->getRoles() === []) {
+            $tutor->setStatus(UserStatusEnum::Active);
+            $tutor->setRoles([RoleEnum::Tutor->value]);
         }
 
         if ($item->image !== null) {
