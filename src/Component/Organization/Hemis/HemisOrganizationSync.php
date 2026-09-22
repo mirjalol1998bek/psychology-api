@@ -189,7 +189,9 @@ final class HemisOrganizationSync
 
         // Admin hali qo'l tegizmagan (pending, rolsiz) yozuvni tyutor
         // sifatida faollashtiramiz — o'zi rol/holat bergan bo'lsa, tegmaymiz.
-        if ($tutor->getStatus() === UserStatusEnum::Pending && $tutor->getRoles() === []) {
+        // getRoles() har doim 'ROLE_USER'ni qo'shib qaytaradi (User::getRoles()),
+        // shuning uchun "rolsiz"ni shunga qarab aniqlaymiz, []ga emas.
+        if ($tutor->getStatus() === UserStatusEnum::Pending && $tutor->getRoles() === ['ROLE_USER']) {
             $tutor->setStatus(UserStatusEnum::Active);
             $tutor->setRoles([RoleEnum::Tutor->value]);
         }
