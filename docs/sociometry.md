@@ -21,9 +21,11 @@ oqimi to'liq qayta ishlatiladi** — yangi entity yo'q:
 - `SociometryScorer implements ScorerInterface` — individual attempt uchun
   shaxsiy natija yo'q, `ScoreScaleScorer::NO_OVERALL_RESULT_KEY` bilan bo'sh
   breakdown (KSM-20/QY-16/Dembo-Rubinshteyn'dagi "umumiy ballsiz" naqshi).
-  Talaba faqat "javoblaringiz qabul qilindi, guruh tahlili faqat
-  psixolog/adminga ko'rinadi" degan umumiy matnni ko'radi
-  (`AssessmentInterpretation`, `resultKey='subscale_only'`).
+  Talaba faqat "Rahmat! Javoblaringiz muvaffaqiyatli qabul qilindi." degan
+  sodda matnni ko'radi (`AssessmentInterpretation`, `resultKey='subscale_only'`)
+  — kim ko'rishi haqidagi texnik tafsilot matnga chiqarilmaydi
+  (`TestResultView.vue` breakdown bo'sh bo'lganda alohida, sodda "rahmat"
+  ko'rinishini chizadi — pastga qarang).
 - Admin `POST /api/assignments` orqali kategoriyani guruhga oddiy tarzda
   biriktiradi — hech qanday maxsus kod kerak emas (`assignment.md`).
 - **Salbiy tanlovlar v1'da yo'q** — rasmiy hujjatning o'zi buni "zarurat
@@ -111,3 +113,9 @@ psixolog/admin uchun (foydalanuvchi bilan aniqlashtirib olindi, xuddi
   tubdan boshqa — juftlik, individual resultKey emas). Router'da bu yo'l
   generic `results/:instrument/:facultyId/:groupId`dan OLDIN turadi (static
   segment ustuvor).
+- `TestResultView.vue` (talaba natija ekrani) — `breakdown` bo'sh VA
+  `score` yo'q bo'lgan har qanday natija (hozircha faqat Sotsiometriya,
+  lekin instrumentga bog'liq emas — kelajakdagi shunga o'xshash metodika
+  ham avtomatik shu bilan render bo'ladi) alohida, sodda "rahmat" kartasi
+  bilan ko'rsatiladi (katta ✓ belgi, "NATIJA TAHLILI" sarlavhasi va
+  breakdown grafigisiz) — oddiy hero+tahlil ko'rinishi o'rniga.

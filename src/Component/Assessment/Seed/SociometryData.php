@@ -44,9 +44,8 @@ final class SociometryData
     public function noOverallInterpretationUz(): array
     {
         return [
-            'title' => 'Javoblaringiz qabul qilindi',
-            'text' => 'Sotsiometriya individual natija bermaydi — tanlovlaringiz butun guruh tahlilida ishtirok etadi. '
-                . 'Guruh natijasi faqat psixolog va administratorga ko\'rinadi.',
+            'title' => 'Rahmat!',
+            'text' => 'Javoblaringiz muvaffaqiyatli qabul qilindi.',
         ];
     }
 
@@ -56,9 +55,8 @@ final class SociometryData
     public function noOverallInterpretationRu(): array
     {
         return [
-            'title' => 'Ваши ответы приняты',
-            'text' => 'Социометрия не даёт индивидуального результата — ваш выбор учитывается в анализе всей группы. '
-                . 'Результат группы виден только психологу и администратору.',
+            'title' => 'Спасибо!',
+            'text' => 'Ваши ответы успешно приняты.',
         ];
     }
 }
