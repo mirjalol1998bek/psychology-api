@@ -28,7 +28,7 @@ final class HemisLoginService
     public function loginByCode(string $code): User
     {
         $profile = $this->hemisClient->fetchProfile($this->hemisClient->fetchAccessToken($code));
-        $user = $this->userRepository->findOneBy(['hemisId' => $profile->hemisId]);
+        $user = $this->findExisting($profile);
         $isNew = $user === null;
 
         if ($isNew) {
@@ -44,6 +44,19 @@ final class HemisLoginService
         }
 
         return $user;
+    }
+
+    /**
+     * `id` — HEMIS'ning ichki raqami (dastlabki OAuth yozuvlari shu bilan
+     * saqlangan); `login` — Xodim/Talaba ID, HEMIS sinxroni yozuvlarni shu
+     * bilan saqlaydi (`employee_id_number` / `student_id_number`). Ikkalasini
+     * tekshirmasak, oldindan sinxronlangan tyutor/talaba uchun ikkinchi hisob
+     * ochilardi (yoki email unikalligi bo'yicha yiqilardi).
+     */
+    private function findExisting(HemisProfile $profile): ?User
+    {
+        return $this->userRepository->findOneBy(['hemisId' => $profile->hemisId])
+            ?? $this->userRepository->findOneBy(['hemisId' => $profile->login]);
     }
 
     private function refreshFromProfile(User $user, HemisProfile $profile): void

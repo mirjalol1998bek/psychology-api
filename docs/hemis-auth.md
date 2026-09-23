@@ -60,7 +60,8 @@ callback'da tekshiradi. Sessiyasiz (stateless) — `state` o'zida `nonce` + vaqt
 
 `UserFactory::createFromHemis(HemisProfile)`:
 
-- `hemisId = profile.id`
+- `hemisId = profile.login` (Xodim/Talaba ID — HEMIS sinxroni ham shu
+  kalitni ishlatadi: `employee_id_number` / `student_id_number`)
 - `email = profile.email ?? "{login}@hemis.uzswlu.uz"` (sintetik, unikal)
 - `fullName`, `image`
 - **xodim** (`type === 'employee'`) → `status = pending`, `roles = []` —
@@ -69,7 +70,11 @@ callback'da tekshiradi. Sessiyasiz (stateless) — `state` o'zida `nonce` + vaqt
 - talaba bo'lsa va `groupName` HEMIS'dan kelsa — mavjud `StudyGroup` ga
   `externalId`/`name` bo'yicha ulanadi (topilmasa `null`, admin biriktiradi)
 
-Mavjud foydalanuvchi `hemisId` bo'yicha topiladi; `fullName`/`image` yangilanadi,
+Mavjud foydalanuvchi `hemisId` bo'yicha topiladi — avval `profile.id`
+(dastlabki OAuth yozuvlari ichki raqam bilan saqlangan, masalan `2506`),
+topilmasa `profile.login` (oldindan sinxronlangan tyutor/talaba). Aks holda
+sinxronlangan tyutor HEMIS orqali kirganda ikkinchi `pending` hisob ochilardi
+yoki `email` unikalligi bo'yicha xato berardi. `fullName`/`image` yangilanadi,
 rol va `status` **o'zgartirilmaydi** (admin bergan rollar saqlanadi).
 
 Yangi `pending` foydalanuvchi yaratilganda `HemisLoginService` barcha adminlarga
