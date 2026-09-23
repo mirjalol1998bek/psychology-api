@@ -45,7 +45,9 @@ final class HemisConfig
 
     public function getUserinfoUrl(HemisPortal $portal): string
     {
-        return $this->forPortal($this->parameterGetter->getString('hemis.userinfo_url'), $portal);
+        $url = $this->forPortal($this->parameterGetter->getString('hemis.userinfo_url'), $portal);
+
+        return $portal === HemisPortal::Student ? $this->withStudentFields($url) : $url;
     }
 
     public function getRedirectUri(): string
@@ -74,6 +76,21 @@ final class HemisConfig
     public function isConfigured(): bool
     {
         return $this->getClientId() !== '' && $this->getClientSecret() !== '';
+    }
+
+    /**
+     * `fields` HEMIS javobini faqat so'ralgan maydonlar bilan cheklaydi, talaba
+     * profilida esa nomlar boshqa (`student_id_number`, `full_name`, `image`).
+     * Ularni qo'shamiz — HEMIS modelda yo'q maydonlarni e'tiborsiz qoldiradi.
+     */
+    private function withStudentFields(string $url): string
+    {
+        return preg_replace(
+            '/([?&]fields=[^&]*)/',
+            '$1,student_id_number,full_name,short_name,image',
+            $url,
+            1,
+        ) ?? $url;
     }
 
     /**

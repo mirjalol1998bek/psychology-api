@@ -118,25 +118,51 @@ final class HemisClient
      */
     private function mapProfile(array $data, HemisPortal $portal): HemisProfile
     {
-        $id = $this->stringOrNull($data, 'id') ?? $this->stringOrNull($data, 'uuid');
-        $login = $this->stringOrNull($data, 'login');
+        $login = $this->readLogin($data);
+        $id = $this->stringOrNull($data, 'id') ?? $this->stringOrNull($data, 'uuid') ?? $login;
 
         if ($id === null || $login === null) {
-            throw new HemisAuthException('HEMIS profili to\'liq emas (id/login yo\'q).');
+            throw new HemisAuthException(sprintf(
+                'HEMIS profili to\'liq emas (id/login yo\'q). Kelgan maydonlar: %s',
+                implode(', ', array_keys($data)) ?: '—',
+            ));
         }
 
         return new HemisProfile(
             $id,
             $login,
-            $this->stringOrNull($data, 'name') ?? $login,
+            $this->readFullName($data) ?? $login,
             $this->stringOrNull($data, 'email'),
             // Talaba portalidan kirgan — ta'rifi bo'yicha talaba; `type` bo'lmasa ham.
             $portal === HemisPortal::Student ? 'student' : $this->readType($data),
-            $this->stringOrNull($data, 'picture'),
+            $this->stringOrNull($data, 'picture') ?? $this->stringOrNull($data, 'image'),
             $this->stringOrNull($data, 'phone'),
             $this->readNestedName($data, 'group') ?? $this->stringOrNull($data, 'group_name'),
             $this->readNestedName($data, 'faculty') ?? $this->readNestedName($data, 'department'),
         );
+    }
+
+    /**
+     * Xodim profilida `login`, talabanikida esa Talaba ID `student_id_number`
+     * bo'lib keladi — HEMIS sinxroni ham aynan shu qiymatlarni kalit qiladi.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function readLogin(array $data): ?string
+    {
+        return $this->stringOrNull($data, 'login')
+            ?? $this->stringOrNull($data, 'student_id_number')
+            ?? $this->stringOrNull($data, 'employee_id_number');
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function readFullName(array $data): ?string
+    {
+        return $this->stringOrNull($data, 'name')
+            ?? $this->stringOrNull($data, 'full_name')
+            ?? $this->stringOrNull($data, 'short_name');
     }
 
     /**
