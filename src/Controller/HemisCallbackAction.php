@@ -9,6 +9,7 @@ use App\Component\User\Hemis\HemisConfig;
 use App\Component\User\Hemis\HemisLoginService;
 use App\Component\User\Hemis\HemisStateSigner;
 use App\Component\User\TokensCreator;
+use App\Component\User\UserManager;
 use App\Controller\Base\AbstractController;
 use App\Entity\User;
 use App\Enum\HemisPortal;
@@ -28,6 +29,7 @@ class HemisCallbackAction extends AbstractController
         HemisStateSigner $hemisStateSigner,
         HemisLoginService $hemisLoginService,
         TokensCreator $tokensCreator,
+        UserManager $userManager,
         LoggerInterface $logger,
     ): RedirectResponse {
         try {
@@ -39,6 +41,8 @@ class HemisCallbackAction extends AbstractController
             if ($user->getStatus() !== UserStatusEnum::Active) {
                 return new RedirectResponse($this->buildStatusUrl($hemisConfig, $user->getStatus()));
             }
+
+            $userManager->recordLogin($user);
 
             return new RedirectResponse($this->buildTokenUrl($hemisConfig, $tokensCreator, $user));
         } catch (Throwable $e) {

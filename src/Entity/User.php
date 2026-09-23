@@ -201,6 +201,11 @@ class User implements
     #[Groups(['user:read'])]
     private ?DateTimeInterface $updatedAt = null;
 
+    /** Oxirgi haqiqiy kirish (HEMIS yoki parol) — token yangilash/impersonatsiya emas. */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['user:read', 'users:read'])]
+    private ?DateTimeInterface $lastLoginAt = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTimeInterface $deletedAt = null;
 
@@ -306,6 +311,18 @@ class User implements
     public function setHemisId(?string $hemisId): self
     {
         $this->hemisId = $hemisId;
+
+        return $this;
+    }
+
+    public function getLastLoginAt(): ?DateTimeInterface
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function setLastLoginAt(?DateTimeInterface $lastLoginAt): self
+    {
+        $this->lastLoginAt = $lastLoginAt;
 
         return $this;
     }

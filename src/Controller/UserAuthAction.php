@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Component\User\Exceptions\AuthException;
 use App\Component\User\TokensCreator;
+use App\Component\User\UserManager;
 use App\Controller\Base\AbstractController;
 use App\Entity\User;
 use App\Enum\UserStatusEnum;
@@ -28,7 +29,8 @@ class UserAuthAction extends AbstractController
         User $data,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordEncoder,
-        TokensCreator $tokensCreator
+        TokensCreator $tokensCreator,
+        UserManager $userManager,
     ): Response {
         $user = $userRepository->findOneByEmail($data->getEmail());
 
@@ -43,6 +45,8 @@ class UserAuthAction extends AbstractController
         if ($user->getStatus() !== UserStatusEnum::Active) {
             throw new AuthException('Hisobingiz faol emas. Administrator tasdig\'ini kuting.');
         }
+
+        $userManager->recordLogin($user);
 
         return $this->responseNormalized($tokensCreator->create($user));
     }

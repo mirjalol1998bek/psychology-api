@@ -81,6 +81,13 @@ sinxronlangan tyutor HEMIS orqali kirganda ikkinchi `pending` hisob ochilardi
 yoki `email` unikalligi bo'yicha xato berardi. `fullName`/`image` yangilanadi,
 rol va `status` **o'zgartirilmaydi** (admin bergan rollar saqlanadi).
 
+**Vaqt maydonlari:** `createdAt` faqat yozuv yaratilganda qo'yiladi
+(`WriteSubscriber` mavjud obyektga tegmaydi — avval `users/about_me` POST'i
+uni har safar qayta yozardi). Kirish vaqti alohida — `lastLoginAt`,
+`UserManager::recordLogin()` faqat faol foydalanuvchining haqiqiy kirishida
+(HEMIS callback yoki `users/auth` parol) yangilaydi; token yangilash va admin
+impersonatsiyasi kirish hisoblanmaydi.
+
 Yangi `pending` foydalanuvchi yaratilganda `HemisLoginService` barcha adminlarga
 `AccessRequest` bildirishnomasini yuboradi. To'liq oqim: [`auth.md`](auth.md).
 

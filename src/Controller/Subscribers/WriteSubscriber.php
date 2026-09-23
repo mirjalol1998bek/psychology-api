@@ -46,6 +46,10 @@ class WriteSubscriber extends AbstractController implements EventSubscriberInter
 
     private function persist(object|array $model): void
     {
+        if ($this->isExisting($model)) {
+            return;
+        }
+
         if ($model instanceof CreatedBySettableInterface) {
             $model->setCreatedBy($this->getUser());
         }
@@ -64,6 +68,15 @@ class WriteSubscriber extends AbstractController implements EventSubscriberInter
         if ($model instanceof UpdatedAtSettableInterface) {
             $model->setUpdatedAt(new DateTime());
         }
+    }
+
+    /**
+     * Har POST yaratish emas — masalan `users/about_me` mavjud User'ni
+     * qaytaradi; aks holda uning createdAt/createdBy har safar qayta yozilardi.
+     */
+    private function isExisting(object|array $model): bool
+    {
+        return is_object($model) && method_exists($model, 'getId') && $model->getId() !== null;
     }
 
     private function isIgnoredUrl(ViewEvent $event): bool

@@ -6,6 +6,7 @@ namespace App\Component\User;
 
 use App\Component\Core\AbstractManager;
 use App\Entity\User;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -23,6 +24,16 @@ class UserManager extends AbstractManager
         private UserPasswordHasherInterface $passwordEncoder,
     ) {
         parent::__construct($entityManager, $currentUser);
+    }
+
+    /**
+     * Faqat haqiqiy kirishda (HEMIS yoki parol) chaqiriladi — token yangilash
+     * va admin impersonatsiyasi "oxirgi kirish" hisoblanmaydi.
+     */
+    public function recordLogin(User $user): void
+    {
+        $user->setLastLoginAt(new DateTime());
+        $this->save($user, true);
     }
 
     public function hashPassword(User $user, string $plainPassword): void
