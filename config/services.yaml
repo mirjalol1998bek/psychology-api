@@ -12,6 +12,9 @@ parameters:
     hemis.auth_url: '%env(HEMIS_AUTH_URL)%'
     hemis.token_url: '%env(HEMIS_TOKEN_URL)%'
     hemis.userinfo_url: '%env(HEMIS_USERINFO_URL)%'
+    # Talaba portali — .env'da bo'lmasa shu standart qiymat ishlatiladi.
+    env(HEMIS_STUDENT_URL): 'https://student.uzswlu.uz'
+    hemis.student_url: '%env(HEMIS_STUDENT_URL)%'
     hemis.redirect_uri: '%env(HEMIS_REDIRECT_URI)%'
     hemis.scope: '%env(HEMIS_SCOPE)%'
     hemis.api_base_url: '%env(HEMIS_API_BASE_URL)%'

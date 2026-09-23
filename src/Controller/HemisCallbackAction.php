@@ -11,6 +11,7 @@ use App\Component\User\Hemis\HemisStateSigner;
 use App\Component\User\TokensCreator;
 use App\Controller\Base\AbstractController;
 use App\Entity\User;
+use App\Enum\HemisPortal;
 use App\Enum\UserStatusEnum;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -32,8 +33,8 @@ class HemisCallbackAction extends AbstractController
         try {
             $this->assertNoError($request);
             $code = $this->requireCode($request);
-            $this->assertValidState($hemisStateSigner, (string) $request->query->get('state', ''));
-            $user = $hemisLoginService->loginByCode($code);
+            $portal = $this->requirePortal($hemisStateSigner, (string) $request->query->get('state', ''));
+            $user = $hemisLoginService->loginByCode($code, $portal);
 
             if ($user->getStatus() !== UserStatusEnum::Active) {
                 return new RedirectResponse($this->buildStatusUrl($hemisConfig, $user->getStatus()));
@@ -69,11 +70,10 @@ class HemisCallbackAction extends AbstractController
         return $code;
     }
 
-    private function assertValidState(HemisStateSigner $signer, string $state): void
+    private function requirePortal(HemisStateSigner $signer, string $state): HemisPortal
     {
-        if ($signer->isValid($state) === false) {
-            throw new HemisAuthException('HEMIS "state" yaroqsiz yoki muddati o\'tgan. Qaytadan urinib ko\'ring.');
-        }
+        return $signer->verify($state)
+            ?? throw new HemisAuthException('HEMIS "state" yaroqsiz yoki muddati o\'tgan. Qaytadan urinib ko\'ring.');
     }
 
     private function buildTokenUrl(HemisConfig $config, TokensCreator $tokensCreator, User $user): string

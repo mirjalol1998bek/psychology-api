@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace App\Component\User\Hemis;
 
 use App\Component\Core\ParameterGetter;
+use App\Enum\HemisPortal;
 
+/**
+ * `state` = `nonce.issuedAt.portal.signature` — callback qaysi portal
+ * (xodim/talaba) orqali kelganini shundan biladi; redirect_uri ikkalasida bir.
+ */
 final class HemisStateSigner
 {
     private const LIFETIME_SECONDS = 1800;
@@ -14,28 +19,31 @@ final class HemisStateSigner
     {
     }
 
-    public function issue(): string
+    public function issue(HemisPortal $portal): string
     {
-        $payload = bin2hex(random_bytes(8)) . '.' . time();
+        $payload = bin2hex(random_bytes(8)) . '.' . time() . '.' . $portal->value;
 
         return $payload . '.' . $this->sign($payload);
     }
 
-    public function isValid(string $state): bool
+    /**
+     * Imzo va muddat to'g'ri bo'lsa — kirish boshlangan portal, aks holda null.
+     */
+    public function verify(string $state): ?HemisPortal
     {
         $parts = explode('.', $state);
 
-        if (count($parts) !== 3) {
-            return false;
+        if (count($parts) !== 4) {
+            return null;
         }
 
-        $payload = $parts[0] . '.' . $parts[1];
+        [$nonce, $issuedAt, $portal, $signature] = $parts;
 
-        if (hash_equals($this->sign($payload), $parts[2]) === false) {
-            return false;
+        if (hash_equals($this->sign($nonce . '.' . $issuedAt . '.' . $portal), $signature) === false) {
+            return null;
         }
 
-        return $this->isFresh((int) $parts[1]);
+        return $this->isFresh((int) $issuedAt) ? HemisPortal::tryFrom($portal) : null;
     }
 
     private function isFresh(int $issuedAt): bool

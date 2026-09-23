@@ -9,6 +9,7 @@ use App\Component\User\UserFactory;
 use App\Component\User\UserManager;
 use App\Entity\StudyGroup;
 use App\Entity\User;
+use App\Enum\HemisPortal;
 use App\Enum\UserStatusEnum;
 use App\Repository\StudyGroupRepository;
 use App\Repository\UserRepository;
@@ -25,9 +26,10 @@ final class HemisLoginService
     ) {
     }
 
-    public function loginByCode(string $code): User
+    public function loginByCode(string $code, HemisPortal $portal): User
     {
-        $profile = $this->hemisClient->fetchProfile($this->hemisClient->fetchAccessToken($code));
+        $token = $this->hemisClient->fetchAccessToken($code, $portal);
+        $profile = $this->hemisClient->fetchProfile($token, $portal);
         $user = $this->findExisting($profile);
         $isNew = $user === null;
 

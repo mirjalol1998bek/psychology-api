@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Component\User\Hemis;
 
+use App\Enum\HemisPortal;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class HemisClient
@@ -14,7 +15,7 @@ final class HemisClient
     ) {
     }
 
-    public function buildAuthorizationUrl(string $state): string
+    public function buildAuthorizationUrl(string $state, HemisPortal $portal): string
     {
         $query = [
             'response_type' => 'code',
@@ -27,12 +28,12 @@ final class HemisClient
             $query['scope'] = $this->config->getScope();
         }
 
-        return $this->config->getAuthorizeUrl() . '?' . http_build_query($query);
+        return $this->config->getAuthorizeUrl($portal) . '?' . http_build_query($query);
     }
 
-    public function fetchAccessToken(string $code): string
+    public function fetchAccessToken(string $code, HemisPortal $portal): string
     {
-        $response = $this->httpClient->request('POST', $this->config->getTokenUrl(), $this->tlsOptions() + [
+        $response = $this->httpClient->request('POST', $this->config->getTokenUrl($portal), $this->tlsOptions() + [
             'headers' => ['Accept' => 'application/json'],
             'body' => [
                 'grant_type' => 'authorization_code',
@@ -56,9 +57,9 @@ final class HemisClient
         return $token;
     }
 
-    public function fetchProfile(string $accessToken): HemisProfile
+    public function fetchProfile(string $accessToken, HemisPortal $portal): HemisProfile
     {
-        $response = $this->httpClient->request('GET', $this->config->getUserinfoUrl(), $this->tlsOptions() + [
+        $response = $this->httpClient->request('GET', $this->config->getUserinfoUrl($portal), $this->tlsOptions() + [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Accept' => 'application/json',
@@ -67,7 +68,7 @@ final class HemisClient
 
         $raw = $response->getContent(false);
 
-        return $this->mapProfile($this->unwrap($this->decode($raw, 'userinfo')));
+        return $this->mapProfile($this->unwrap($this->decode($raw, 'userinfo')), $portal);
     }
 
     /**
@@ -115,7 +116,7 @@ final class HemisClient
     /**
      * @param array<string, mixed> $data
      */
-    private function mapProfile(array $data): HemisProfile
+    private function mapProfile(array $data, HemisPortal $portal): HemisProfile
     {
         $id = $this->stringOrNull($data, 'id') ?? $this->stringOrNull($data, 'uuid');
         $login = $this->stringOrNull($data, 'login');
@@ -129,7 +130,8 @@ final class HemisClient
             $login,
             $this->stringOrNull($data, 'name') ?? $login,
             $this->stringOrNull($data, 'email'),
-            $this->readType($data),
+            // Talaba portalidan kirgan — ta'rifi bo'yicha talaba; `type` bo'lmasa ham.
+            $portal === HemisPortal::Student ? 'student' : $this->readType($data),
             $this->stringOrNull($data, 'picture'),
             $this->stringOrNull($data, 'phone'),
             $this->readNestedName($data, 'group') ?? $this->stringOrNull($data, 'group_name'),

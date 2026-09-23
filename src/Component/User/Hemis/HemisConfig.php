@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Component\User\Hemis;
 
 use App\Component\Core\ParameterGetter;
+use App\Enum\HemisPortal;
 
 final class HemisConfig
 {
@@ -32,19 +33,19 @@ final class HemisConfig
         return rtrim($this->parameterGetter->getString('hemis.api_base_url'), '/');
     }
 
-    public function getAuthorizeUrl(): string
+    public function getAuthorizeUrl(HemisPortal $portal): string
     {
-        return $this->parameterGetter->getString('hemis.auth_url');
+        return $this->forPortal($this->parameterGetter->getString('hemis.auth_url'), $portal);
     }
 
-    public function getTokenUrl(): string
+    public function getTokenUrl(HemisPortal $portal): string
     {
-        return $this->parameterGetter->getString('hemis.token_url');
+        return $this->forPortal($this->parameterGetter->getString('hemis.token_url'), $portal);
     }
 
-    public function getUserinfoUrl(): string
+    public function getUserinfoUrl(HemisPortal $portal): string
     {
-        return $this->parameterGetter->getString('hemis.userinfo_url');
+        return $this->forPortal($this->parameterGetter->getString('hemis.userinfo_url'), $portal);
     }
 
     public function getRedirectUri(): string
@@ -73,5 +74,22 @@ final class HemisConfig
     public function isConfigured(): bool
     {
         return $this->getClientId() !== '' && $this->getClientSecret() !== '';
+    }
+
+    /**
+     * Talaba portali xodimnikidek yo'l va `fields`ni ishlatadi, faqat hosti
+     * boshqa (`HEMIS_STUDENT_URL`) — shuning uchun faqat origin almashtiriladi.
+     */
+    private function forPortal(string $url, HemisPortal $portal): string
+    {
+        if ($portal === HemisPortal::Employee) {
+            return $url;
+        }
+
+        $parts = parse_url($url);
+        $origin = ($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? '')
+            . (isset($parts['port']) ? ':' . $parts['port'] : '');
+
+        return rtrim($this->parameterGetter->getString('hemis.student_url'), '/') . substr($url, strlen($origin));
     }
 }

@@ -2,11 +2,15 @@
 
 Universitet SSO orqali kirish. Standart OAuth2 **authorization code** oqimi.
 
-> **Muhim:** hozirgi `HEMIS_CLIENT_ID=4` — **xodim (Xodim ID)** OAuth klienti
-> (`hemis.uzswlu.uz/dashboard/login`). Talabalar bu klient orqali kira olmaydi —
-> ular uchun alohida `studentoauth` klienti kerak (client_id/secret hali yo'q).
-> Talabalar hozircha demo parol (`ask:seed:demo`) yoki admin impersonatsiyasi
-> (`POST /api/students/{id}/impersonate`) orqali kiradi.
+> **Ikki portal, bitta klient:** HEMIS alohida talaba klienti bermaydi — o'sha
+> `HEMIS_CLIENT_ID`/`SECRET` va `HEMIS_REDIRECT_URI` ikkala portalda ishlatiladi:
+> xodim — `hemis.uzswlu.uz`, talaba — `HEMIS_STUDENT_URL` (standart
+> `https://student.uzswlu.uz`). Yo'llar (`/oauth/authorize`, `/oauth/access-token`,
+> `/oauth/api/user?fields=...`) bir xil, faqat host almashadi (`HemisConfig::forPortal`).
+> `GET /api/auth/hemis?portal=student|employee` (standart `employee`); tanlangan
+> portal imzolangan `state` ichida (`nonce.vaqt.portal.imzo`) callback'ga
+> qaytadi — soxtalashtirib bo'lmaydi. Talaba portalidan kirgan har doim
+> `type=student` deb olinadi.
 >
 > Callback natijalari (`{FRONTEND_URL}/auth/hemis#...`):
 > `#access=&refresh=` — muvaffaqiyat; `#pending=1` — xodim tasdiq kutmoqda;
