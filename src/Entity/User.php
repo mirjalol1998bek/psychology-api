@@ -166,7 +166,7 @@ class User implements
     private array $roles = [];
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true, unique: true)]
-    #[Groups(['user:read', 'users:read', 'student:create'])]
+    #[Groups(['user:read', 'users:read', 'student:create', 'passport:read:staff'])]
     private ?string $hemisId = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]

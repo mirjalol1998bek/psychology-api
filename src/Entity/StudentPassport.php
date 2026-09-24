@@ -55,7 +55,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
     normalizationContext: ['groups' => ['passport:read']],
     security: "is_granted('IS_AUTHENTICATED_FULLY')",
 )]
-#[ApiFilter(SearchFilter::class, properties: ['student' => 'exact', 'student.studyGroup' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: [
+    'student' => 'exact',
+    'student.studyGroup' => 'exact',
+    'student.studyGroup.faculty' => 'exact',
+])]
 #[ORM\Entity(repositoryClass: StudentPassportRepository::class)]
 #[ORM\Table(name: 'student_passport')]
 class StudentPassport implements UpdatedAtSettableInterface

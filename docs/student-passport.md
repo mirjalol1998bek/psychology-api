@@ -51,4 +51,7 @@ Jadval: `student_passport`.
 | `PUT /api/student_passport` | `PassportPutProcessor` — `student` = joriy foydalanuvchi; `personalCode` bu yo'l bilan yozilmaydi |
 | `GET /api/student_passports` | `ROLE_PSYCHOLOGIST` (ro'yxat, eksport uchun — `personalCode` ham shu yerda ko'rinadi) |
 
-Filtr: `student`, `student.studyGroup`.
+Filtr: `student`, `student.studyGroup`, `student.studyGroup.faculty` (fakultet arxivi —
+front har bir talabaga PDF yaratib zip qiladi). Javobda `student.fullName`,
+`student.hemisId`, `student.studyGroup{id,name}` bor. Sahifalash: `itemsPerPage`
+(maks. 2000) — front 1000 tadan sahifalab oladi.
