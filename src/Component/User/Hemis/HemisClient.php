@@ -139,7 +139,46 @@ final class HemisClient
             $this->stringOrNull($data, 'phone'),
             $this->readNestedName($data, 'group') ?? $this->stringOrNull($data, 'group_name'),
             $this->readNestedName($data, 'faculty') ?? $this->readNestedName($data, 'department'),
+            $this->readEmployeeIds($data),
+            $this->fieldNames($data),
         );
+    }
+
+    /**
+     * Xodimning Xodim ID'lari: profilning o'zida yoki lavozimlar ro'yxatida
+     * (`employee_list` — bir odamning bir nechta shtat yozuvi bo'lishi mumkin).
+     *
+     * @param array<string, mixed> $data
+     * @return list<string>
+     */
+    private function readEmployeeIds(array $data): array
+    {
+        $ids = [$this->stringOrNull($data, 'employee_id_number')];
+        $list = $data['employee_list'] ?? [];
+
+        foreach (is_array($list) ? $list : [] as $item) {
+            if (is_array($item)) {
+                $ids[] = $this->stringOrNull($item, 'employee_id_number');
+            }
+        }
+
+        return array_values(array_unique(array_filter($ids, static fn (?string $id): bool => $id !== null)));
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return list<string>
+     */
+    private function fieldNames(array $data): array
+    {
+        $names = array_map('strval', array_keys($data));
+        $first = is_array($data['employee_list'] ?? null) ? reset($data['employee_list']) : null;
+
+        foreach (is_array($first) ? array_keys($first) : [] as $key) {
+            $names[] = 'employee_list[].' . $key;
+        }
+
+        return $names;
     }
 
     /**

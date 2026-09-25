@@ -32,8 +32,9 @@ class UserFactory
     public function createFromHemis(HemisProfile $profile, ?StudyGroup $studyGroup): User
     {
         $user = $this->create($profile->resolveEmail(), bin2hex(random_bytes(16)));
-        // Sinxron bilan bir xil kalit (Xodim/Talaba ID) — keyingi sinxron shu yozuvni topadi.
-        $user->setHemisId($profile->login);
+        // Sinxron bilan bir xil kalit — keyingi sinxron shu yozuvni topadi: xodimda
+        // Xodim ID (login emas, u foydalanuvchi nomi), talabada login = Talaba ID.
+        $user->setHemisId($profile->employeeIds[0] ?? $profile->login);
         $user->setFullName($profile->fullName);
         $user->setImage($profile->picture);
         $user->setIsActive(true);

@@ -74,12 +74,21 @@ callback'da tekshiradi. Sessiyasiz (stateless) — `state` o'zida `nonce` + vaqt
 - talaba bo'lsa va `groupName` HEMIS'dan kelsa — mavjud `StudyGroup` ga
   `externalId`/`name` bo'yicha ulanadi (topilmasa `null`, admin biriktiradi)
 
-Mavjud foydalanuvchi `hemisId` bo'yicha topiladi — avval `profile.id`
-(dastlabki OAuth yozuvlari ichki raqam bilan saqlangan, masalan `2506`),
-topilmasa `profile.login` (oldindan sinxronlangan tyutor/talaba). Aks holda
-sinxronlangan tyutor HEMIS orqali kirganda ikkinchi `pending` hisob ochilardi
-yoki `email` unikalligi bo'yicha xato berardi. `fullName`/`image` yangilanadi,
-rol va `status` **o'zgartirilmaydi** (admin bergan rollar saqlanadi).
+Mavjud foydalanuvchi `hemisId` bo'yicha shu tartibda qidiriladi:
+
+1. `profile.employeeIds` — xodimning Xodim ID'lari (`employee_id_number`,
+   profilning o'zida yoki `employee_list[]` ichida). Sinxron tyutorni shu
+   bilan saqlaydi. **Xodimning `login`i Xodim ID emas** — foydalanuvchi nomi
+   (prod'da topilgan holat: `bekzod_utekov`, sinxronda `3262311131`; natijada
+   ikkinchi pending hisob ochilib, tasdiqlangan hisobda guruhlar yo'q edi).
+2. `profile.id` — dastlabki OAuth yozuvlari (masalan admin `2506`).
+3. `profile.login` — talaba (login = Talaba ID) va yangi hisoblar.
+
+Yangi hisob `hemisId = employeeIds[0] ?? login` bilan saqlanadi. Xodim profili
+Xodim ID bermasa, `warning` logga faqat maydon nomlari yoziladi
+(`docker compose logs php | grep "sinxron yozuviga"`). `image` yangilanadi,
+`fullName` faqat bo'sh bo'lsa (sinxrondagi to'liq F.I.Sh qisqa OAuth ismi
+bilan almashmasin); rol va `status` **o'zgartirilmaydi**.
 
 **Vaqt maydonlari:** `createdAt` faqat yozuv yaratilganda qo'yiladi
 (`WriteSubscriber` mavjud obyektga tegmaydi — avval `users/about_me` POST'i

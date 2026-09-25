@@ -47,7 +47,9 @@ final class HemisConfig
     {
         $url = $this->forPortal($this->parameterGetter->getString('hemis.userinfo_url'), $portal);
 
-        return $portal === HemisPortal::Student ? $this->withStudentFields($url) : $url;
+        return $this->withFields($url, $portal === HemisPortal::Student
+            ? 'student_id_number,full_name,short_name,image'
+            : 'employee_id_number');
     }
 
     public function getRedirectUri(): string
@@ -79,18 +81,14 @@ final class HemisConfig
     }
 
     /**
-     * `fields` HEMIS javobini faqat so'ralgan maydonlar bilan cheklaydi, talaba
-     * profilida esa nomlar boshqa (`student_id_number`, `full_name`, `image`).
-     * Ularni qo'shamiz — HEMIS modelda yo'q maydonlarni e'tiborsiz qoldiradi.
+     * `fields` HEMIS javobini faqat so'ralgan maydonlar bilan cheklaydi. Talaba
+     * profilida nomlar boshqa (`student_id_number`, `full_name`, `image`),
+     * xodimni sinxron yozuviga bog'lash uchun `employee_id_number` kerak.
+     * HEMIS modelda yo'q maydonlarni e'tiborsiz qoldiradi.
      */
-    private function withStudentFields(string $url): string
+    private function withFields(string $url, string $extra): string
     {
-        return preg_replace(
-            '/([?&]fields=[^&]*)/',
-            '$1,student_id_number,full_name,short_name,image',
-            $url,
-            1,
-        ) ?? $url;
+        return preg_replace('/([?&]fields=[^&]*)/', '$1,' . $extra, $url, 1) ?? $url;
     }
 
     /**

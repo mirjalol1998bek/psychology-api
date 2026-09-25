@@ -13,6 +13,7 @@ use App\Enum\HemisPortal;
 use App\Enum\UserStatusEnum;
 use App\Repository\StudyGroupRepository;
 use App\Repository\UserRepository;
+use Psr\Log\LoggerInterface;
 
 final class HemisLoginService
 {
@@ -23,6 +24,7 @@ final class HemisLoginService
         private readonly UserManager $userManager,
         private readonly StudyGroupRepository $studyGroupRepository,
         private readonly NotificationDispatcher $notificationDispatcher,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -45,25 +47,48 @@ final class HemisLoginService
             $this->notificationDispatcher->notifyAdminsOnAccessRequest($user);
         }
 
+        if ($profile->isEmployee() && ($isNew || $profile->employeeIds === [])) {
+            // Xodim sinxron yozuviga Xodim ID orqali bog'lanmadi — tahlil uchun (qiymatlarsiz).
+            $this->logger->warning('HEMIS xodim profili sinxron yozuviga bog\'lanmadi', [
+                'userId' => $user->getId(),
+                'isNew' => $isNew,
+                'employeeIds' => count($profile->employeeIds),
+                'fields' => implode(', ', $profile->fieldNames),
+            ]);
+        }
+
         return $user;
     }
 
     /**
-     * `id` — HEMIS'ning ichki raqami (dastlabki OAuth yozuvlari shu bilan
-     * saqlangan); `login` — Xodim/Talaba ID, HEMIS sinxroni yozuvlarni shu
-     * bilan saqlaydi (`employee_id_number` / `student_id_number`). Ikkalasini
-     * tekshirmasak, oldindan sinxronlangan tyutor/talaba uchun ikkinchi hisob
-     * ochilardi (yoki email unikalligi bo'yicha yiqilardi).
+     * Sinxron yozuvlarni `employee_id_number` (xodim) / `student_id_number`
+     * (talaba) bilan saqlaydi. Talabaning OAuth `login`i — Talaba ID, xodimniki
+     * esa foydalanuvchi nomi (`bekzod_utekov`) — shu sabab xodim avval
+     * profilidagi Xodim ID'lari bo'yicha qidiriladi. `id` — dastlabki OAuth
+     * yozuvlari (masalan `2506`), `login` — talaba va yangi hisoblar.
      */
     private function findExisting(HemisProfile $profile): ?User
     {
+        foreach ($profile->employeeIds as $employeeId) {
+            $user = $this->userRepository->findOneBy(['hemisId' => $employeeId]);
+
+            if ($user !== null) {
+                return $user;
+            }
+        }
+
         return $this->userRepository->findOneBy(['hemisId' => $profile->hemisId])
             ?? $this->userRepository->findOneBy(['hemisId' => $profile->login]);
     }
 
     private function refreshFromProfile(User $user, HemisProfile $profile): void
     {
-        $user->setFullName($profile->fullName);
+        // Sinxrondagi to'liq F.I.Sh ("UTEKOV BEKZOD MARAT O'G'LI") OAuth'dagi
+        // qisqa ism ("BEKZOD UTEKOV") bilan almashtirilmasin.
+        if (($user->getFullName() ?? '') === '') {
+            $user->setFullName($profile->fullName);
+        }
+
         $user->setImage($profile->picture);
 
         if ($user->getStudyGroup() === null) {
