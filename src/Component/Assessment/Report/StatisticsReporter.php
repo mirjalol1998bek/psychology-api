@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Component\Assessment\Report;
 
+use App\Component\Assessment\Scoring\CategoryTallyScorer;
 use App\Enum\InstrumentType;
 use App\Repository\AssessmentResultRepository;
 use App\Repository\CategoryRepository;
@@ -47,6 +48,8 @@ final class StatisticsReporter
                 'withResults' => $studentsWithResults,
                 'figures' => $this->countByKey($rows, 'FIGURE_CHOICE'),
                 'temperaments' => $this->mergeTemperaments($rows),
+                'temperamentStudents' => $this->countTemperamentResults($rows, false),
+                'temperamentMixed' => $this->countTemperamentResults($rows, true),
                 'scales' => $this->scaleBreakdown($rows, $students, $scaleAlgos),
             ];
         }
@@ -142,12 +145,40 @@ final class StatisticsReporter
         $counts = [];
 
         foreach ($rows as $row) {
-            if ($row['algo'] === 'TEMPERAMENT_STATEMENTS' || $row['algo'] === 'TEMPERAMENT_CHOICE') {
-                $counts[$row['resultKey']] = ($counts[$row['resultKey']] ?? 0) + 1;
+            if ($this->isTemperament($row['algo']) === false) {
+                continue;
+            }
+
+            // Aralash natija (`Flegmatik+Xolerik`) — har bir teng turga hisoblanadi.
+            foreach (explode(CategoryTallyScorer::MIXED_SEPARATOR, $row['resultKey']) as $key) {
+                $counts[$key] = ($counts[$key] ?? 0) + 1;
             }
         }
 
         return $this->toPairs($counts);
+    }
+
+    /**
+     * @param list<array{studentId: int, algo: string, resultKey: string}> $rows
+     */
+    private function countTemperamentResults(array $rows, bool $mixedOnly): int
+    {
+        $count = 0;
+
+        foreach ($rows as $row) {
+            $isMixed = str_contains($row['resultKey'], CategoryTallyScorer::MIXED_SEPARATOR);
+
+            if ($this->isTemperament($row['algo']) && ($mixedOnly === false || $isMixed)) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    private function isTemperament(string $algo): bool
+    {
+        return $algo === 'TEMPERAMENT_STATEMENTS' || $algo === 'TEMPERAMENT_CHOICE';
     }
 
     /**

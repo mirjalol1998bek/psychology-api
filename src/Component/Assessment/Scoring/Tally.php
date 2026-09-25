@@ -21,19 +21,24 @@ final class Tally
         $this->counts[$key] = ($this->counts[$key] ?? 0) + $amount;
     }
 
-    public function topKey(): string
+    /**
+     * Eng ko'p ballga ega BARCHA kalitlar — teng bo'lsa hech biri ustun
+     * qo'yilmaydi (aralash tur). Alifbo tartibida: savol/variant tartibiga
+     * (til bo'yicha farq qiladi) bog'liq bo'lmasin.
+     *
+     * @return list<string>
+     */
+    public function topKeys(): array
     {
-        $topKey = (string) array_key_first($this->counts);
-        $topValue = -1;
-
-        foreach ($this->counts as $key => $value) {
-            if ($value > $topValue) {
-                $topKey = $key;
-                $topValue = $value;
-            }
+        if ($this->counts === []) {
+            return [];
         }
 
-        return $topKey;
+        $max = max($this->counts);
+        $keys = array_map('strval', array_keys(array_filter($this->counts, static fn (int $value): bool => $value === $max)));
+        sort($keys, SORT_STRING);
+
+        return $keys;
     }
 
     /**

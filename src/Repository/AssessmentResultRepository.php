@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\AssessmentResult;
+use App\Enum\InstrumentType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -34,6 +35,22 @@ class AssessmentResultRepository extends ServiceEntityRepository
             ->setParameter('faculty', $facultyId)
             ->getQuery()
             ->getArrayResult();
+    }
+
+    /**
+     * @param list<InstrumentType> $types
+     * @return list<AssessmentResult>
+     */
+    public function findByInstrumentTypes(array $types): array
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.attempt', 'a')
+            ->join('a.quiz', 'q')
+            ->join('q.category', 'c')
+            ->andWhere('c.instrumentType IN (:types)')
+            ->setParameter('types', $types)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

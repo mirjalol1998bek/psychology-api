@@ -16,8 +16,8 @@
 
 | `InstrumentType` | Scorer | Algoritm | `breakdown` |
 |---|---|---|---|
-| `TEMPERAMENT_STATEMENTS` | `CategoryTallyScorer` | Har bayonot = "Ha/Yo'q". Tanlangan "Ha" variantlar `AnswerOption.categoryKey` bo'yicha sanaladi. Eng ko'p ballli kategoriya — natija. | kategoriya → ball |
-| `TEMPERAMENT_CHOICE` | `CategoryTallyScorer` | Har savolga bitta javob; `option.categoryKey` bo'yicha sanaladi; argmax. | kategoriya → ball |
+| `TEMPERAMENT_STATEMENTS` | `CategoryTallyScorer` | Har bayonot = "Ha/Yo'q". Tanlangan "Ha" variantlar `AnswerOption.categoryKey` bo'yicha sanaladi. Eng ko'p ballli kategoriya — natija; **teng bo'lsa — aralash tur** (pastga qarang). | kategoriya → ball |
+| `TEMPERAMENT_CHOICE` | `CategoryTallyScorer` | Har savolga bitta javob; `option.categoryKey` bo'yicha sanaladi; eng ko'p ballli, teng bo'lsa — aralash. | kategoriya → ball |
 | `FIGURE_CHOICE` | `FigureChoiceScorer` | Bitta figura tanlanadi; `option.categoryKey` (yo'q bo'lsa `text`) — natija. | bo'sh |
 | `SCORE_SCALE` | `ScoreScaleScorer` | Tanlangan variant ballari yig'iladi. Teskari savolda (`Question.getIsReversed()`) `(maxOptionScore + minOptionScore) - optionScore`. Yig'indi `ScoreRange` oralig'iga tushadi → `resultKey`. | Subshkalasiz: `[{label:'score', value: total}]`. Subshkalali (pastga qarang): har subshkala uchun bitta element |
 | `DEMBO_RUBINSTEIN` | `DemboRubinsteinScorer` | `ScoreScaleScorer`dan mustaqil — variant emas, har savol bitta chiziq, javobi `AttemptAnswer.textValue`da JSON `{"ob":int,"dd":int}`. `Question.overallSign=0` bo'lgan chiziq (demo/sog'liq) o'rtachaga qo'shilmaydi. | 3 element: OB o'rtachasi, DD o'rtachasi, farq (pastga qarang) |
@@ -121,7 +121,24 @@ metodlaridan foydalanilmaydi, chunki javob variant emas). Natija ham
 klassdan ham qayta ishlatiladi — bu shunchaki ochiq konstanta).
 
 `Tally` — value object (`array<string,int>` ni inkapsulyatsiya qiladi):
-`register`, `add`, `topKey`, `toBreakdown`.
+`register`, `add`, `topKeys`, `toBreakdown`.
+
+### Teng ballli temperament — aralash tur
+
+Eng ko'p ballga 2, 3 yoki 4 tur teng bo'lsa, **hech biriga ustunlik
+berilmaydi**: `resultKey` = teng turlar alifbo tartibida `+` bilan
+(`Flegmatik+Xolerik`, `CategoryTallyScorer::MIXED_SEPARATOR`). Alifbo —
+savol/variant tartibiga bog'liq bo'lmasin (u uz va ru testlarda har xil;
+avval teng ballda uz'da Xolerik, ru'da Flegmatik "g'olib" bo'lardi).
+
+`ResultDescriber` (topshirishda ham, qayta hisoblashda ham): `label` =
+turlar sarlavhalari `' + '` bilan, `description` = har tur uchun
+`Sarlavha\nmatn`, bloklar `\n\n` bilan — front har birini alohida ko'rsatadi.
+Statistikada aralash natija har bir teng turga sanaladi; `temperamentStudents`
+/ `temperamentMixed` — foiz uchun maxraj va izoh.
+
+Eski qoida bilan saqlangan natijalar: `ask:results:rescore-temperament`
+(standart — faqat ko'rsatadi, `--apply` bilan yozadi; takror ishlatish xavfsiz).
 
 ### Guruh darajasidagi tahlil (Sotsiometriya) — Scorer emas, alohida Reporter
 

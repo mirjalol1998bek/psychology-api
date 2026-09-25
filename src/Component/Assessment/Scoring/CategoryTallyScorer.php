@@ -9,6 +9,9 @@ use App\Enum\InstrumentType;
 
 final class CategoryTallyScorer implements ScorerInterface
 {
+    /** Teng ballli turlar birlashtiriladi: `Flegmatik+Xolerik`. */
+    public const MIXED_SEPARATOR = '+';
+
     public function supports(InstrumentType $instrumentType): bool
     {
         return $instrumentType === InstrumentType::TemperamentStatements
@@ -22,7 +25,7 @@ final class CategoryTallyScorer implements ScorerInterface
         $this->registerCategories($attempt, $tally);
         $this->countSelectedOptions($attempt, $tally);
 
-        return new ScoredResult($tally->topKey(), null, $tally->toBreakdown());
+        return new ScoredResult(implode(self::MIXED_SEPARATOR, $tally->topKeys()), null, $tally->toBreakdown());
     }
 
     private function registerCategories(Attempt $attempt, Tally $tally): void
