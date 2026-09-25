@@ -101,7 +101,8 @@ final class HemisApiClient
      * Tyutorlar — "employee-list"dan `tutorGroups` bo'sh bo'lmagan faol xodimlar.
      * Bitta xodim bir nechta shtat yozuviga ega bo'lishi mumkin (turli lavozim/
      * bo'lim) — shu sabab `employee_id_number` bo'yicha guruhlab, tutorGroups
-     * birlashtiriladi.
+     * birlashtiriladi. `type=all` — tyutor faqat `teacher` turida ham bo'lishi
+     * mumkin (`employee` turi ularni qaytarmaydi).
      *
      * @return list<HemisEmployee>
      */
@@ -109,7 +110,7 @@ final class HemisApiClient
     {
         $byHemisId = [];
 
-        foreach ($this->collect('/data/employee-list', ['type' => 'employee']) as $item) {
+        foreach ($this->collect('/data/employee-list', ['type' => 'all']) as $item) {
             $groups = $this->mapTutorGroups($item['tutorGroups'] ?? []);
             $hemisId = (string) ($item['employee_id_number'] ?? '');
 

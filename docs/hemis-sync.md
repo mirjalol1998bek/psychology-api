@@ -26,8 +26,12 @@ TLS: `config/certs/hemis-ca-chain.pem` (HEMIS oraliq sertifikatni yubormaydi).
   **to'plab import qilinmaydi** — admin kerakligini tanlaydi.
 - `data/student-list?_group=<groupExtId>` — bitta guruhning **hozir o'qiyotgan**
   (`studentStatus.code === "11"`) talabalari. `student_id_number` → `User.hemisId`.
-- `data/employee-list?type=employee` — xodimlar, har birida `tutorGroups`
+- `data/employee-list?type=all` — xodimlar, har birida `tutorGroups`
   (`list<{id,name,educationLang}>`) — tyutor sifatida biriktirilgan guruhlar.
+  `type=employee` faqat bir qismini qaytaradi (2026-09: 840 / 2734) — faqat
+  `teacher` turidagi tyutor tushib qolardi, shu sabab `all`.
+  OAuth profilidagi `id` bu yerdagi `id`/`meta_id`ga **teng emas** (HEMIS
+  foydalanuvchi hisobining raqami) — bog'lovchi kalit faqat `employee_id_number`.
   **Diqqat:** bitta xodim bir nechta shtat yozuviga ega bo'lishi mumkin (turli
   lavozim/bo'lim) — sahifalashda **bir nechta marta** qaytadi, har safar bir
   xil `tutorGroups` bilan. `employee_id_number` bo'yicha guruhlab, tutorGroups
